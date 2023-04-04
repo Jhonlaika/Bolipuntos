@@ -148,16 +148,7 @@ const Home = ({ navigation }) => {
           />
         </View>
       </View>
-      <View style={{ marginTop: 30, alignItems: 'center', width: '75%', justifyContent: 'space-between', flexDirection: 'row' }}>
-        <Text style={{ fontSize: 20, color: colors.black }}>Jugar en parejas</Text>
-        <Switch
-          trackColor={{ false: '#767577', true: colors.primary }}
-          thumbColor={scoreState.playCouples ? colors.white : '#f4f3f4'}
-          ios_backgroundColor="#3e3e3e"
-          onValueChange={handlePlayCouples}
-          value={scoreState.playCouples}
-        />
-      </View>
+     
       <View style={{ position: 'absolute', bottom: 10 }}>
         <ButtonPrincipal action={handleForm} disabled={numberPlayers === 0 || numberTotal === 0 || numberEmpty === 0} text={'Siguiente'} />
       </View>
