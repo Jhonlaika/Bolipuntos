@@ -92,18 +92,30 @@ const Home = ({ navigation }) => {
   }
   //handleForm
   const handleForm = () => {
-    dispatch(addPlayersPlay(Array(scoreState.numberPlayers).fill(null)))
-    navigation.navigate('Player')
+    if (scoreState.playCouples) {
+      if (scoreState.numberPlayers > 3 && scoreState.numberPlayers % 2 === 0) {
+
+        let arrayPairs = [];
+
+        for (let i = 1; i <= scoreState.numberPlayers / 2; i++) {
+          arrayPairs.push({ pair: i });
+          arrayPairs.push({ pair: i });
+        }
+        dispatch(addPlayersPlay(arrayPairs))
+        navigation.navigate('Player')
+      } else {
+        alert('Para jugar en parejas, se debe elegir el número correcto de jugadores.')
+      }
+    } else {
+      dispatch(addPlayersPlay(Array(scoreState.numberPlayers).fill(null)))
+      navigation.navigate('Player')
+    }
   }
   const handleSetRandomEmpty = () => {
     dispatch(setRandomEmpty())
   }
   const handlePlayCouples = () => {
-    if (scoreState.numberPlayers > 3 && scoreState.numberPlayers % 2 === 0) {
-      dispatch(setPlayCouples())
-    } else {
-      alert('Para jugar en parejas, se debe elegir el número correcto de jugadores.')
-    }
+    dispatch(setPlayCouples())
   }
   return (
     <View style={styles.root}>

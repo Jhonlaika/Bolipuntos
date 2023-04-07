@@ -3,7 +3,24 @@ import React from 'react'
 import { colors } from '../../../utils/constants'
 import ItemScore from '../../Home/components/ItemScore';
 
-const ItemPlayer = ({ index,showRounds,handleShowRounds,lengthPlayers, handleAddTotalPoints, handleRemoveTotalPoints, score, handleActiveWhite, handleChangePoints, action, round, item, disabled, scoreTotal, points = 0 }) => {
+const ItemPlayer = ({
+  playCouples,
+  index,
+  showRounds,
+  handleShowRounds,
+  lengthPlayers, 
+  handleAddTotalPoints, 
+  handleRemoveTotalPoints, 
+  score, handleActiveWhite, 
+  handleChangePoints, 
+  action, 
+  round, 
+  item, 
+  disabled, 
+  points = 0, 
+  totalPoints,
+  remaining 
+}) => {
   const setPoints = (value) => {
     handleChangePoints(index, value)
   }
@@ -11,8 +28,12 @@ const ItemPlayer = ({ index,showRounds,handleShowRounds,lengthPlayers, handleAdd
   return (
     <View>
       {
+        playCouples && !round &&
+        <Text style={{ fontSize: 20, color: index % 2 == 0 ? colors.black : colors.white, fontWeight: 'bold', marginVertical: (score || index % 2 === 0) ? 10 : 0 }}>{`Pareja ${(index / 2) + 1}`}</Text>
+      }
+      {
         score && item.victoryPlace === 1 &&
-        <Image resizeMode='contain' style={{ width: 70, height: 70, bottom: 0, right: 0, position: 'absolute', zIndex: 1, opacity: 1 }} source={require('../../../assets/images/winner.png')} />
+        <Image resizeMode='contain' style={playCouples?{...styles.imageWinner,top:40}:{...styles.imageWinner,bottom:0}} source={require('../../../assets/images/winner.png')} />
       }
       <View style={score ? {
         ...styles.root,
@@ -25,16 +46,17 @@ const ItemPlayer = ({ index,showRounds,handleShowRounds,lengthPlayers, handleAdd
       } : styles.root}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={item?.backgroundColor ? { ...styles.circle, backgroundColor: item?.backgroundColor ? item.backgroundColor : colors.primary } : styles.circle}>
-            <Text style={styles.textInitial}>{(round || score) ? ((item.victoryPlace >= 1 && item.victory) ? 'Gano' : points) : (item ? item.name[0].toUpperCase() : 'J')}</Text>
+            <Text style={styles.textInitial}>{(round || score) ? ((item.victoryPlace >= 1 && item.victory) ? 'Gano' : points) : (item?.name ? item.name[0].toUpperCase() : 'J')}</Text>
           </View>
-          <TouchableOpacity disabled={disabled} onPress={() => action(index)} style={!score && { width: (round || score) ? '30%' : '100%' }}>
-            <Text style={{ ...styles.text, color: item?.backgroundColor ? item.backgroundColor : colors.gray }}>{item ? item.name : `Jugador ${index + 1}`}</Text>
+          <TouchableOpacity disabled={disabled} onPress={() => action(index)} style={!score && { width: round ? '30%' : '100%' }}>
+            <Text numberOfLines={1} style={{ ...styles.text,width:score && 58,fontSize:(item?.name && (score)) ?100/item.name.length:20,color: item?.backgroundColor ? item.backgroundColor : colors.gray }}>{item?.name ? item.name : `Jugador ${index + 1}`}</Text>
           </TouchableOpacity>
           {
             round &&
             <View style={{ width: '45%', paddingBottom: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <View style={{ width: '50%' }}>
                 <ItemScore
+                  visibleOperator
                   value={String(item.pointsRound)}
                   editableInput={item.whiteActive || (item.victoryPlace >= 1 && item.victory)}
                   actionAdd={handleAddTotalPoints}
@@ -43,7 +65,7 @@ const ItemPlayer = ({ index,showRounds,handleShowRounds,lengthPlayers, handleAdd
                   onChangeText={setPoints}
                   color={item?.backgroundColor ? item.backgroundColor : colors.primary} />
               </View>
-              <View style={{ alignItems: 'center', marginTop: 20 }}>
+              <View style={{ alignItems: 'center', marginTop: 5 }}>
                 <TouchableOpacity disabled={(item.victoryPlace >= 1 && item.victory)} onPress={() => handleActiveWhite(index)} style={{ ...styles.select, backgroundColor: item.whiteActive ? item?.backgroundColor ? item.backgroundColor : colors.primary : colors.white }} />
                 <Text style={{ color: colors.black }}>blanco</Text>
               </View>
@@ -52,28 +74,35 @@ const ItemPlayer = ({ index,showRounds,handleShowRounds,lengthPlayers, handleAdd
         </View>
         {
           score &&
-          <View style={{ marginTop: 10, height: 70, justifyContent: 'space-between' }}>
-            <Text style={styles.subTitlePoints}>{`Restante: ${scoreTotal - item.points}`}</Text>
+          <View style={{ marginTop: 10, height: !playCouples ? 70 : 25, justifyContent: 'space-between' }}>
+            {
+              !playCouples &&
+              <Text style={styles.subTitlePoints}>{`Restante: ${remaining}`}</Text>
+            }
             <Text style={styles.subTitlePoints}>{`Blancos: ${item.numberWhites}`}</Text>
-            <Text style={{ ...styles.subTitlePoints }}>Posicion: <Text style={{ fontWeight: 'bold' }}>{`${item.victoryPlace === 0 ? (item.place === lengthPlayers ? 'Marrano' : item.place) : item.victoryPlace}`}</Text></Text>
+            {
+              !playCouples &&
+              <Text style={{ ...styles.subTitlePoints }}>Posicion: <Text style={{ fontWeight: 'bold' }}>{`${item.victoryPlace === 0 ? (item.place === lengthPlayers ? '🐷' : item.place) : item.victoryPlace}`}</Text></Text>
+
+            }
           </View>
         }
         {round &&
           <View>
-            <View style={{flexDirection:'row',justifyContent:'space-between'}}>
-              <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>{`Restante: ${scoreTotal - (item.pointsRound ? (item.pointsRound + item.points) : item.points)}`}</Text>
-              <TouchableOpacity onPress={()=>handleShowRounds(index)}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>{`Restante: ${remaining}`}</Text>
+              <TouchableOpacity onPress={() => handleShowRounds(index)}>
                 <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>Ver rondas</Text>
               </TouchableOpacity>
             </View>
             {
-            showRounds.includes(index) &&                 
-             <View  style={{marginVertical:10,flexWrap:'wrap',flexDirection:'row'}}>
-             { item.rounds.map((round,index)=>(
-                <Text style={{ ...styles.textRemaining,marginTop:5,width:'50%'}}>{`Ronda ${index+1}: ${round ?round:0}`}</Text>
-              ))}
+              showRounds.includes(index) &&
+              <View style={{ marginVertical: 10, flexWrap: 'wrap', flexDirection: 'row' }}>
+                {item.rounds.map((round, index) => (
+                  <Text style={{ ...styles.textRemaining, marginTop: 5, width: '50%' }}>{`Ronda ${index + 1}: ${round ? round : 0}`}</Text>
+                ))}
               </View>
-            }  
+            }
           </View>
         }
         {
@@ -82,6 +111,25 @@ const ItemPlayer = ({ index,showRounds,handleShowRounds,lengthPlayers, handleAdd
         }
 
       </View>
+      {
+        (score && playCouples) &&
+        <View style={{ ...styles.pairsContainer,borderWidth: 0.2, borderColor: item.backgroundColor }}>
+          {
+            index % 2 === 0
+              ?
+              <>
+                <Text style={{ ...styles.subTitlePoints, fontSize: 20, color: item.backgroundColor, fontWeight: 'bold' }}>{`Total Pareja`}</Text>
+                <Text style={{ ...styles.subTitlePoints, fontSize: 20, color: item.backgroundColor, fontWeight: 'bold' }}>{totalPoints}</Text>
+
+              </>
+              :
+              <>
+                <Text style={{ ...styles.subTitlePoints, color: item.backgroundColor,paddingTop:3.5 }}>{`Restante : ${remaining}`}</Text>
+                <Text style={{ ...styles.subTitlePoints,paddingBottom:3.5 }}>Posicion: <Text style={{ fontWeight: 'bold' }}>{`${item.victoryPlace === 0 ? (item.place === (playCouples ? lengthPlayers/2:lengthPlayers) ? '🐷' : item.place) : item.victoryPlace}`}</Text></Text>
+              </>
+          }
+        </View>
+      }
     </View>
   )
 }
@@ -92,14 +140,19 @@ const styles = StyleSheet.create({
   root: {
     marginVertical: 5,
   },
+  pairsContainer: {
+    marginHorizontal: 7,
+    padding: 20,
+    borderRadius: 10,
+  },
   textRemaining: {
     fontWeight: 'bold',
-    color:colors.black
+    color: colors.black
   },
   select: {
     borderWidth: 0.5,
-    width: 30,
-    height: 30,
+    width: 35,
+    height: 35,
     borderColor: colors.gray,
     borderRadius: 5,
     marginBottom: 10,
@@ -138,6 +191,14 @@ const styles = StyleSheet.create({
     color: colors.gray,
     fontSize: 20,
     paddingVertical: 10
+  },
+  imageWinner:{ 
+    width: 70, 
+    height: 70, 
+    right: 0, 
+    position: 'absolute', 
+    zIndex: 1, 
+    opacity: 1 
   }
 
 })

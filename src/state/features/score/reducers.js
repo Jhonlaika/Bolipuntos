@@ -5,13 +5,13 @@ const initialState = {
     numberPlayers: 1,
     numberTotal: 1500,
     numberEmpty: 50,
-    randomEmpty:false,
-    playCouples:false,
-    round:1,
+    randomEmpty: false,
+    playCouples: false,
+    round: 1,
     players: [],
     playersPlay: [],
     newPlayer: '',
-    winner:0
+    winner: 0
 }
 export const scoreSlice = createSlice({
     name: 'score',
@@ -65,18 +65,30 @@ export const scoreSlice = createSlice({
                 numberEmpty: state.numberEmpty,
                 randomEmpty: state.randomEmpty,
                 playCouples: state.playCouples,
-                round:state.round,
-                winner:0
+                round: state.round,
+                winner: 0
             }, '@config')
         },
         editPlayerPlay: (state, action) => {
             const { index, newValue } = action.payload;
-            state.playersPlay[index] = newValue
+            state.playersPlay[index] = { ...state.playersPlay[index], ...newValue }
         },
         onChangePointsRound: (state, action) => {
             const { index, newValue } = action.payload;
-            let totalPoints = state.playersPlay[index].points + (newValue ? parseInt(newValue) : 0);
+            let totalPoints = 0;
             let currentVictoryPlace = state.playersPlay[index].victoryPlace;
+            let pairValue = state.playersPlay[index].pair;
+
+            if (state.playCouples) {
+                state.playersPlay.forEach(player => {
+                    if (player.pair === pairValue) {
+                        totalPoints += player.points;
+                    }
+                });
+                totalPoints +=(newValue ? parseInt(newValue) : 0);
+            } else {
+                totalPoints = state.playersPlay[index].points + (newValue ? parseInt(newValue) : 0)
+            }
             if (totalPoints >= state.numberTotal) {
                 state.playersPlay.forEach((player, i) => {
                     if (i !== index && player.victoryPlace > currentVictoryPlace) {
@@ -89,28 +101,46 @@ export const scoreSlice = createSlice({
             } else {
                 currentVictoryPlace = 0
             }
-            state.playersPlay[index] = { ...state.playersPlay[index], victoryPlace: currentVictoryPlace, pointsRound: newValue ? parseInt(newValue) : '' }
+            if (!state.playCouples) {
+                state.playersPlay[index] = { ...state.playersPlay[index], victoryPlace: currentVictoryPlace, pointsRound: newValue ? parseInt(newValue) : '' }
+            } else {
+                state.playersPlay = state.playersPlay.map((obj,index) => {
+                    return { ...obj, victoryPlace: obj.pair === pairValue ? currentVictoryPlace : obj.victoryPlace, pointsRound: index ===action.payload.index  ? newValue ? parseInt(newValue) : '': obj.pointsRound }
+                })
+            }
         },
         editPlayerPoints: (state) => {
             state.playersPlay = state.playersPlay.map((obj) => {
-                return { ...obj, points: obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0), pointsRound: '',rounds:[...obj.rounds,obj.whiteActive ? (-obj.numberEmpty) : obj.pointsRound], numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites, whiteActive: false }
+                return { ...obj, points: obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0), pointsRound: '', rounds: [...obj.rounds, obj.whiteActive ? (-obj.numberEmpty) : obj.pointsRound], numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites, whiteActive: false }
             })
+            let sumByPair = {};
+            for (let i = 0; i < state.playersPlay.length; i++) {
+                let player = state.playersPlay[i];
+                let pair = player.pair;
+                let points = player.points;
+
+                if (sumByPair[pair]) {
+                    sumByPair[pair] += points;
+                } else {
+                    sumByPair[pair] = points;
+                }
+            }
             let playerWin = state.playersPlay.find(player => player.victoryPlace === 1);
             let temporalPlayers = [...state.playersPlay];
-            let sortedPlayers = temporalPlayers.sort((a, b) => b.points - a.points);
+            let sortedPlayers = state.playCouples ? temporalPlayers.sort((a, b) => sumByPair[b.pair] - sumByPair[a.pair]) : temporalPlayers.sort((a, b) => b.points - a.points);
             state.playersPlay = state.playersPlay.map((obj) => {
-                return { ...obj, points: (obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0))>state.numberTotal ? state.numberTotal:(obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0)), place: (sortedPlayers.findIndex(player => player.id === obj.id)) + 1, pointsRound: '',victory:obj.victoryPlace>=1 ?true:false,numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites, whiteActive: false }
+                return { ...obj, points: (obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0)) > state.numberTotal ? state.numberTotal : (obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0)), place: state.playCouples ? ((sortedPlayers.findIndex(player => player.pair === obj.pair)) / 2) + 1 : (sortedPlayers.findIndex(player => player.id === obj.id)) + 1, pointsRound: '', victory: obj.victoryPlace >= 1 ? true : false, numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites, whiteActive: false }
             })
-            state.winner=playerWin?.id ? playerWin.id:0;
-            state.round=state.round+1;
+            state.winner = playerWin?.id ? playerWin.id : 0;
+            state.round = state.round + 1;
             storeData({
                 numberPlayers: state.numberPlayers,
                 numberTotal: state.numberTotal,
                 numberEmpty: state.numberEmpty,
                 randomEmpty: state.randomEmpty,
                 playCouples: state.playCouples,
-                round:state.round,
-                winner: playerWin?.id ? playerWin.id:0
+                round: state.round,
+                winner: playerWin?.id ? playerWin.id : 0
             }, '@config')
             storeData(state.playersPlay, '@playersPlay')
         },
@@ -127,27 +157,49 @@ export const scoreSlice = createSlice({
             state.playersPlay[index] = { ...state.playersPlay[index], pointsRound: (state.playersPlay[index].pointsRound) - 1 }
         },
         randomPlayerStart: (state) => {
-            state.playersPlay = state.playersPlay.sort(() => Math.random() - 0.5);
+            let players = [...state.playersPlay];
+            function compareRandom() {
+                return Math.random() - 0.5;
+            }
+            players.sort(compareRandom);
+            let currentPair = 1;
+            for (let i = 0; i < players.length; i++) {
+                players[i].pair = currentPair;
+                if ((i + 1) % 2 === 0) {
+                    currentPair++;
+                }
+            }
+            const backgroundColorMap = new Map();
+
+            for (let i = 0; i < players.length; i++) {
+                const player = players[i];
+                if (!backgroundColorMap.has(player.pair)) {
+                    backgroundColorMap.set(player.pair, player.backgroundColor);
+                } else {
+                    player.backgroundColor = backgroundColorMap.get(player.pair);
+                }
+            }
+            state.playersPlay = state.playCouples ? players : state.playersPlay.sort(() => Math.random() - 0.5);
             storeData(state.playersPlay, '@playersPlay')
         },
         setConfig: (state, action) => {
-            const { numberPlayers, numberEmpty,randomEmpty,numberTotal,winner,round,playCouples} = action.payload
+            const { numberPlayers, numberEmpty, randomEmpty, numberTotal, winner, round, playCouples } = action.payload
             state.numberPlayers = numberPlayers
             state.numberEmpty = numberEmpty
-            state.randomEmpty=randomEmpty
-            state.playCouples =playCouples
+            state.randomEmpty = randomEmpty
+            state.playCouples = playCouples
             state.numberTotal = numberTotal
             state.winner = winner
-            state.round =round
+            state.round = round
         },
-        setRandomEmpty:(state)=>{
-            state.randomEmpty=!state.randomEmpty
+        setRandomEmpty: (state) => {
+            state.randomEmpty = !state.randomEmpty
         },
-        setPlayCouples:(state)=>{
-            state.playCouples=!state.playCouples
+        setPlayCouples: (state) => {
+            state.playCouples = !state.playCouples
         },
         onChangeEmptyPlayer: (state, action) => {
-            const { index,numberEmpty } = action.payload;
+            const { index, numberEmpty } = action.payload;
             state.playersPlay[index] = { ...state.playersPlay[index], numberEmpty: numberEmpty }
         },
     }

@@ -1,6 +1,6 @@
 import { StyleSheet, View, FlatList, Text, BackHandler, Alert, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { useSelector,useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import ItemPlayer from '../Player/components/ItemPlayer';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal';
 import { colors } from '../../utils/constants';
@@ -21,19 +21,19 @@ const Score = ({ navigation, route }) => {
             numberPlayers: 1,
             numberTotal: 1500,
             numberEmpty: 50,
-            randomEmpty:false,
-            playCouples:false,
-            round:1,
-            winner:0
+            randomEmpty: false,
+            playCouples: false,
+            round: 1,
+            winner: 0
         }))
         storeData({
             numberPlayers: 1,
             numberTotal: 1500,
             numberEmpty: 50,
-            randomEmpty:false,
-            playCouples:false,
-            round:1,
-            winner:0
+            randomEmpty: false,
+            playCouples: false,
+            round: 1,
+            winner: 0
         }, '@config')
         removeValue('@playersPlay')
     }
@@ -55,6 +55,35 @@ const Score = ({ navigation, route }) => {
             ]
         );
     }
+    const handleSetPoints = (item) => {
+        if (scoreState.playCouples) {
+            let player = scoreState.playersPlay.find((player) => player.id === item.id);
+            if (player) {
+                const pair = player.pair; // Obtener el valor de pair del elemento encontrado
+                const totalPoints = scoreState.playersPlay.filter(player => player.pair === pair) // Filtrar los elementos con el mismo valor de pair
+                    .reduce((total, player) => total + player.points, 0);
+
+                return totalPoints
+            }
+        } else {
+            return item.points
+        }
+    }
+    const handleSetRemaining = (item) => {
+        if (scoreState.playCouples) {
+            let player = scoreState.playersPlay.find((player) => player.id === item.id);
+            if (player) {
+                const pair = player.pair; // Obtener el valor de pair del elemento encontrado
+                const totalPoints = scoreState.playersPlay.filter(player => player.pair === pair) // Filtrar los elementos con el mismo valor de pair
+                    .reduce((total, player) => total + player.points, 0);
+
+                return scoreState.numberTotal-totalPoints;
+            }
+        } else {
+            return scoreState.numberTotal - item.points;
+        }
+    }
+
     //useEffects
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -85,10 +114,12 @@ const Score = ({ navigation, route }) => {
     (
         <ItemPlayer
             lengthPlayers={scoreState.playersPlay.length}
+            totalPoints={handleSetPoints(item)}
+            remaining={handleSetRemaining(item)}
             points={item.points}
-            scoreTotal={scoreState.numberTotal}
             score
             disabled
+            playCouples={scoreState.playCouples}
             victoryPlace={item.victoryPlace}
             item={item}
             index={index} />
@@ -98,7 +129,6 @@ const Score = ({ navigation, route }) => {
             <Text style={styles.title}>Puntuación a ganar: <Text>{scoreState.numberTotal}</Text></Text>
             <FlatList
                 contentContainerStyle={{ paddingBottom: 50, alignItems: 'center' }}
-                style={{ width: '100%', paddingHorizontal: 10 }}
                 numColumns={2}
                 data={scoreState.playersPlay}
                 renderItem={_renderItem}

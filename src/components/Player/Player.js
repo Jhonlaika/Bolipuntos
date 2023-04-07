@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, FlatList, Switch,Keyboard } from 'react-native'
+import { StyleSheet, Text, View, FlatList, Switch, Keyboard } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal'
@@ -28,10 +28,13 @@ const Player = ({ navigation }) => {
     const [pressButtonAdd, setButtonAdd] = useState(false);
     const [focusIndexPlayer, setFocusIndexPlayer] = useState(0);
     const [isEnabled, setIsEnabled] = useState(false);
+    const [isEnabledCouples, setIsEnabledCouples] = useState(false);
     const [countdown, setCountdown] = useState(6);
     const [isCounting, setIsCounting] = useState(false);
-    const [showKeyboard,setShowKeyboard] = useState(false);
+    const [showKeyboard, setShowKeyboard] = useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+    const toggleSwitchCouples = () => setIsEnabledCouples(previousState => !previousState);
+
 
     //useEffects
     useEffect(() => {
@@ -98,6 +101,8 @@ const Player = ({ navigation }) => {
         setModalVisiblePlayer(true)
     }
     const handleEditPlayer = (item) => {
+        let focusPlayer = scoreState.playCouples && scoreState.playersPlay.find((item, index) => index === focusIndexPlayer);
+        let pairsColor = focusPlayer && scoreState.playersPlay.find((item) => (item.pair === focusPlayer.pair && item?.backgroundColor))
         dispatch(editPlayerPlay({
             index: focusIndexPlayer,
             newValue: {
@@ -105,30 +110,46 @@ const Player = ({ navigation }) => {
                 name: item.name,
                 points: 0,
                 pointsRound: '',
-                backgroundColor: generateRandomColor(),
+                backgroundColor: (scoreState.playCouples && pairsColor?.backgroundColor) ? pairsColor?.backgroundColor : generateRandomColor(),
                 victory: false,
                 victoryPlace: 0,
                 place: 0,
                 numberEmpty: scoreState.numberEmpty,
                 whiteActive: false,
-                rounds:[],
+                rounds: [],
                 numberWhites: 0
             }
         }))
         setModalVisiblePlayer(false)
     }
     const handlePlayGame = () => {
-        if (isEnabled) {
-            dispatch(randomPlayerStart())
-            setIsCounting(true);
-            const play = (error, sound) => sound.play()
-            const sound = new Sound(
-                require('../../assets/sounds/spin.mp3'),
-                (error) => play(error, sound),
-            )
+        if (scoreState.playCouples) {
+            if (isEnabledCouples) {
+                dispatch(randomPlayerStart())
+                setIsCounting(true);
+                const play = (error, sound) => sound.play()
+                const sound = new Sound(
+                    require('../../assets/sounds/spin.mp3'),
+                    (error) => play(error, sound),
+                )
+            } else {
+                storeData(scoreState.playersPlay, '@playersPlay')
+                navigation.navigate('Score')
+            }
+
         } else {
-            storeData(scoreState.playersPlay, '@playersPlay')
-            navigation.navigate('Score')
+            if (isEnabled) {
+                dispatch(randomPlayerStart())
+                setIsCounting(true);
+                const play = (error, sound) => sound.play()
+                const sound = new Sound(
+                    require('../../assets/sounds/spin.mp3'),
+                    (error) => play(error, sound),
+                )
+            } else {
+                storeData(scoreState.playersPlay, '@playersPlay')
+                navigation.navigate('Score')
+            }
         }
     }
     //components
@@ -136,13 +157,14 @@ const Player = ({ navigation }) => {
     (
         <ItemPlayer
             item={item}
+            playCouples={scoreState.playCouples}
             action={handlePressItemPlayer}
             setModalVisible={setModalVisiblePlayer}
             index={index} />
     )
 
     return (
-        <View style={isCounting ? { ...styles.root, justifyContent: 'center' } : styles.root}>
+        <View style={isCounting ? { ...styles.root, justifyContent: 'center' } : { ...styles.root, paddingBottom: 120 }}>
             {
                 isCounting ?
                     <Spin width={350} height={350} />
@@ -176,17 +198,32 @@ const Player = ({ navigation }) => {
                             keyExtractor={(item, index) => index.toString()}
                         />
                         <View style={{ position: 'absolute', bottom: 20, borderTopLeftRadius: 10, borderTopRightRadius: 10 }}>
-                            <View style={{ marginBottom: 15, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
-                                <Text style={{ fontSize: 20, color: colors.black }}>Sortear salida</Text>
-                                <Switch
-                                    trackColor={{ false: '#767577', true: colors.primary }}
-                                    thumbColor={isEnabled ? colors.white : '#f4f3f4'}
-                                    ios_backgroundColor="#3e3e3e"
-                                    onValueChange={toggleSwitch}
-                                    value={isEnabled}
-                                />
-                            </View>
-                            <ButtonPrincipal action={handlePlayGame} disabled={scoreState.numberPlayers !== scoreState.playersPlay.filter(item => item).length} text={'Empezar juego'} />
+                            {
+                                scoreState.playCouples ?
+                                    <View style={{ marginBottom: 15, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+                                        <Text style={{ fontSize: 20, color: colors.black }}>Sortear Parejas</Text>
+                                        <Switch
+                                            trackColor={{ false: '#767577', true: colors.primary }}
+                                            thumbColor={isEnabledCouples ? colors.white : '#f4f3f4'}
+                                            ios_backgroundColor="#3e3e3e"
+                                            onValueChange={toggleSwitchCouples}
+                                            value={isEnabledCouples}
+                                        />
+                                    </View>
+                                    :
+                                    <View style={{ marginBottom: 15, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+                                        <Text style={{ fontSize: 20, color: colors.black }}>Sortear salida</Text>
+                                        <Switch
+                                            trackColor={{ false: '#767577', true: colors.primary }}
+                                            thumbColor={isEnabled ? colors.white : '#f4f3f4'}
+                                            ios_backgroundColor="#3e3e3e"
+                                            onValueChange={toggleSwitch}
+                                            value={isEnabled}
+                                        />
+                                    </View>
+                            }
+
+                            <ButtonPrincipal action={handlePlayGame} disabled={scoreState.playersPlay.some((player) => player === null) || !scoreState.playersPlay.some((player) => player?.id)} text={'Empezar juego'} />
                         </View>
                     </>
             }
@@ -203,6 +240,5 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         paddingTop: 10,
-        paddingBottom: 120
     }
 })

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import ItemPlayer from '../Player/components/ItemPlayer';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal';
-import { addTotalPoints, changeWhiteBlank, editPlayerPoints, onChangeEmptyPlayer, onChangePointsRound, removeTotalPoints } from '../../state/features/score/reducers';
+import { addTotalPoints, changeWhiteBlank, editPlayerPoints, onChangeEmptyPlayer, onChangePointsRound, removeTotalPoints, scoreSlice } from '../../state/features/score/reducers';
 import Trophy from '../lotties/Trophy';
 import ModalEmpty from './components/ModalEmpty';
 import { colors } from '../../utils/constants';
@@ -22,6 +22,7 @@ const Round = ({ navigation }) => {
     const [randomNumber, setRandomNumber] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [showRounds, setShowRounds] = useState([])
+    const data = scoreState.playCouples ? scoreState.playersPlay.filter((item, index) => scoreState.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0) : scoreState.playersPlay;
     //function
     const handleSaveRound = () => {
         let playerWin = scoreState.playersPlay.find(player => player.victoryPlace === 1);
@@ -39,9 +40,14 @@ const Round = ({ navigation }) => {
         dispatch(editPlayerPoints())
     }
     const handleChangePoints = (index, newValue) => {
+        let newIndex = scoreState.round % 2 === 0 ? (index + (index + 1)) : (index + index);
+        index = scoreState.playCouples ? newIndex : index;
         dispatch(onChangePointsRound({ index: index, newValue: newValue }))
     }
     const handleActiveWhite = (index) => {
+        let newIndex = scoreState.round % 2 === 0 ? (index + (index + 1)) : (index + index);
+        index = scoreState.playCouples ? newIndex : index;
+
         if (scoreState.randomEmpty && !scoreState.playersPlay[index].whiteActive) {
             setFocusIndex(index)
             handleAMenuActiveMenu(index)
@@ -50,9 +56,13 @@ const Round = ({ navigation }) => {
         }
     }
     const handleAddTotalPoints = (index) => {
+        let newIndex = scoreState.round % 2 === 0 ? (index + (index + 1)) : (index + index);
+        index = scoreState.playCouples ? newIndex : index;
         dispatch(addTotalPoints({ index: index }))
     }
     const handleRemoveTotalPoints = (index) => {
+        let newIndex = scoreState.round % 2 === 0 ? (index + (index + 1)) : (index + index);
+        index = scoreState.playCouples ? newIndex : index;
         dispatch(removeTotalPoints({ index: index }))
     }
     const handleSetModalEmpty = () => {
@@ -71,6 +81,22 @@ const Round = ({ navigation }) => {
             setShowRounds([...showRounds, index])
         }
     }
+    const handleSetRemaining = (item) => {
+        if (scoreState.playCouples) {
+            let player = scoreState.playersPlay.find((player) => player.id === item.id);
+            let remaining = 0;
+            if (player) {
+                const pair = player.pair; // Obtener el valor de pair del elemento encontrado
+                const totalPoints = scoreState.playersPlay.filter(player => player.pair === pair) // Filtrar los elementos con el mismo valor de pair
+                    .reduce((total, player) => total + player.points, 0);
+                remaining = (item.whiteActive ? (scoreState.numberTotal + item.numberEmpty) : scoreState.numberTotal) - (item.pointsRound ? (item.pointsRound + totalPoints) : totalPoints);
+                return remaining < 0 ? 0 : remaining
+            }
+        } else {
+            remaining = (item.whiteActive ? (scoreState.numberTotal + item.numberEmpty) : scoreState.numberTotal) - (item.pointsRound ? (item.pointsRound + item.points) : item.points);
+            return remaining < 0 ? 0 : remaining
+        }
+    }
     const handleAMenuActiveMenu = () => {
         Alert.alert(
             'Sortear blanco',
@@ -84,6 +110,20 @@ const Round = ({ navigation }) => {
                 },
             ]
         );
+    }
+    const handleSetPoints = (item) => {
+        if (scoreState.playCouples) {
+            let player = scoreState.playersPlay.find((player) => player.id === item.id);
+            if (player) {
+                const pair = player.pair; // Obtener el valor de pair del elemento encontrado
+                const totalPoints = scoreState.playersPlay.filter(player => player.pair === pair) // Filtrar los elementos con el mismo valor de pair
+                    .reduce((total, player) => total + player.points, 0);
+
+                return ((item.pointsRound + totalPoints) - (item.whiteActive ? item.numberEmpty : 0)) > scoreState.numberTotal ? scoreState.numberTotal : ((item.pointsRound + totalPoints) - (item.whiteActive ? item.numberEmpty : 0))
+            }
+        } else {
+            return ((item.pointsRound + item.points) - (item.whiteActive ? item.numberEmpty : 0)) > scoreState.numberTotal ? scoreState.numberTotal : ((item.pointsRound + item.points) - (item.whiteActive ? item.numberEmpty : 0))
+        }
     }
     //useEffects
     useEffect(() => {
@@ -131,13 +171,15 @@ const Round = ({ navigation }) => {
     const _renderItem = ({ item, index }) =>
     (
         <ItemPlayer
-            points={((item.pointsRound + item.points) - (item.whiteActive ? item.numberEmpty : 0)) > scoreState.numberTotal ? scoreState.numberTotal : ((item.pointsRound + item.points) - (item.whiteActive ? item.numberEmpty : 0))}
+            points={handleSetPoints(item)}
             handleChangePoints={handleChangePoints}
             handleActiveWhite={handleActiveWhite}
             handleAddTotalPoints={handleAddTotalPoints}
             handleRemoveTotalPoints={handleRemoveTotalPoints}
             handleShowRounds={handleShowRounds}
             showRounds={showRounds}
+            indexCouples={scoreState.round % 2 === 0 ? (index + (index + 1)) : (index + index)}
+            remaining={handleSetRemaining(item)}
             round
             scoreTotal={scoreState.numberTotal}
             disabled
@@ -152,7 +194,20 @@ const Round = ({ navigation }) => {
                     <View>
                         <Trophy width={350} height={350} />
                         <Text style={styles.winnerText}>{`¡Felicidades`}</Text>
-                        <Text style={styles.winnerText}>{focusPlayerWin.name}</Text>
+                        {
+                            scoreState.playCouples &&
+                            <View style={{flexDirection:'row'}}>
+                                {
+                                    scoreState.playersPlay.filter((player) => player.victoryPlace).map((player) => (
+                                        <Text style={styles.winnerText}>{player.name}</Text>
+                                    ))
+                                }
+                            </View>
+                        }
+                        {
+                            !scoreState.playCouples &&
+                            <Text style={styles.winnerText}>{focusPlayerWin.name}</Text>
+                        }
                         <Text style={styles.winnerText}>{`Ganaste!`}</Text>
                     </View>
                     :
@@ -161,7 +216,7 @@ const Round = ({ navigation }) => {
                         <FlatList
                             contentContainerStyle={{ paddingBottom: 70 }}
                             style={{ width: '100%', paddingHorizontal: 30 }}
-                            data={scoreState.playersPlay}
+                            data={data}
                             renderItem={_renderItem}
                             keyExtractor={(item, index) => index.toString()}
                         />
