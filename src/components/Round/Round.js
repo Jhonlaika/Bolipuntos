@@ -178,7 +178,6 @@ const Round = ({ navigation }) => {
             handleRemoveTotalPoints={handleRemoveTotalPoints}
             handleShowRounds={handleShowRounds}
             showRounds={showRounds}
-            indexCouples={scoreState.round % 2 === 0 ? (index + (index + 1)) : (index + index)}
             remaining={handleSetRemaining(item)}
             round
             scoreTotal={scoreState.numberTotal}
@@ -196,10 +195,10 @@ const Round = ({ navigation }) => {
                         <Text style={styles.winnerText}>{`¡Felicidades`}</Text>
                         {
                             scoreState.playCouples &&
-                            <View style={{flexDirection:'row'}}>
+                            <View style={{flexDirection:'row',alignItems:'center',alignSelf:'center'}}>
                                 {
-                                    scoreState.playersPlay.filter((player) => player.victoryPlace).map((player) => (
-                                        <Text style={styles.winnerText}>{player.name}</Text>
+                                    scoreState.playersPlay.filter((player) => player.victoryPlace).map((player,index) => (
+                                        <Text index={index} style={{...styles.winnerText,alignSelf:'center'}}>{`${player.name} ${index ===0 ? ' y ':''}`}</Text>
                                     ))
                                 }
                             </View>

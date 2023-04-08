@@ -222,8 +222,7 @@ const Player = ({ navigation }) => {
                                         />
                                     </View>
                             }
-
-                            <ButtonPrincipal action={handlePlayGame} disabled={scoreState.playersPlay.some((player) => player === null) || !scoreState.playersPlay.some((player) => player?.id)} text={'Empezar juego'} />
+                            <ButtonPrincipal action={handlePlayGame} disabled={scoreState.playersPlay.some((player) => player === null) || scoreState.playersPlay.some((player) => !player?.id)} text={'Empezar juego'} />
                         </View>
                     </>
             }

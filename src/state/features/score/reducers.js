@@ -111,7 +111,14 @@ export const scoreSlice = createSlice({
         },
         editPlayerPoints: (state) => {
             state.playersPlay = state.playersPlay.map((obj) => {
-                return { ...obj, points: obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0), pointsRound: '', rounds: [...obj.rounds, obj.whiteActive ? (-obj.numberEmpty) : obj.pointsRound], numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites, whiteActive: false }
+                let findPlayer=state.playersPlay.find((item, index) => (item.pair === obj.pair)&&(state.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0));
+                return { 
+                    ...obj, 
+                    points: obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0), 
+                    pointsRound: '', 
+                    rounds: [...obj.rounds,state.playCouples? (findPlayer.whiteActive ? `${findPlayer.name} ${(-findPlayer.numberEmpty)}` : `${findPlayer.name} ${findPlayer.pointsRound}` ) : (obj.whiteActive ? (-obj.numberEmpty) : obj.pointsRound)], 
+                    numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites, 
+                    whiteActive: false }
             })
             let sumByPair = {};
             for (let i = 0; i < state.playersPlay.length; i++) {

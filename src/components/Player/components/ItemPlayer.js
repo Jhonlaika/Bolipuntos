@@ -41,7 +41,7 @@ const ItemPlayer = ({
         borderWidth: 0.2,
         padding: 20,
         marginVertical: 7,
-        marginHorizontal: 7,
+        marginHorizontal: 5,
         borderColor: item?.backgroundColor ? item.backgroundColor : colors.primary
       } : styles.root}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -54,7 +54,7 @@ const ItemPlayer = ({
           {
             round &&
             <View style={{ width: '45%', paddingBottom: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ width: '50%' }}>
+              <View style={{ width: '60%' }}>
                 <ItemScore
                   visibleOperator
                   value={String(item.pointsRound)}
@@ -77,7 +77,7 @@ const ItemPlayer = ({
           <View style={{ marginTop: 10, height: !playCouples ? 70 : 25, justifyContent: 'space-between' }}>
             {
               !playCouples &&
-              <Text style={styles.subTitlePoints}>{`Restante: ${remaining}`}</Text>
+              <Text style={styles.subTitlePoints}>{`Restante: ${remaining <0 ?0:remaining}`}</Text>
             }
             <Text style={styles.subTitlePoints}>{`Blancos: ${item.numberWhites}`}</Text>
             {
@@ -90,7 +90,7 @@ const ItemPlayer = ({
         {round &&
           <View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>{`Restante: ${remaining}`}</Text>
+              <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>{`Restante: ${remaining <0 ? 0 : remaining}`}</Text>
               <TouchableOpacity onPress={() => handleShowRounds(index)}>
                 <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>Ver rondas</Text>
               </TouchableOpacity>
@@ -99,7 +99,7 @@ const ItemPlayer = ({
               showRounds.includes(index) &&
               <View style={{ marginVertical: 10, flexWrap: 'wrap', flexDirection: 'row' }}>
                 {item.rounds.map((round, index) => (
-                  <Text style={{ ...styles.textRemaining, marginTop: 5, width: '50%' }}>{`Ronda ${index + 1}: ${round ? round : 0}`}</Text>
+                  <Text index={index} style={{ ...styles.textRemaining, marginTop: 5, width: '50%' }}>{`Ronda ${index + 1}: ${round ? round : 0}`}</Text>
                 ))}
               </View>
             }
@@ -124,7 +124,7 @@ const ItemPlayer = ({
               </>
               :
               <>
-                <Text style={{ ...styles.subTitlePoints, color: item.backgroundColor,paddingTop:3.5 }}>{`Restante : ${remaining}`}</Text>
+                <Text style={{ ...styles.subTitlePoints, color: item.backgroundColor,paddingTop:3.5 }}>{`Restante : ${remaining <0 ?0:remaining}`}</Text>
                 <Text style={{ ...styles.subTitlePoints,paddingBottom:3.5 }}>Posicion: <Text style={{ fontWeight: 'bold' }}>{`${item.victoryPlace === 0 ? (item.place === (playCouples ? lengthPlayers/2:lengthPlayers) ? '🐷' : item.place) : item.victoryPlace}`}</Text></Text>
               </>
           }
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   pairsContainer: {
-    marginHorizontal: 7,
+    marginHorizontal: 5,
     padding: 20,
     borderRadius: 10,
   },
