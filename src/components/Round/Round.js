@@ -26,6 +26,10 @@ const Round = ({ navigation }) => {
     //function
     const handleSaveRound = () => {
         let playerWin = scoreState.playersPlay.find(player => player.victoryPlace === 1);
+        
+        if(!(playerWin && scoreState.winner === 0) && data.some((player)=>player.pointsRound ==="" && !player.whiteActive && !player.victory)){
+           return alert('Debe ingresar los puntos de la ronda')
+        }
         if (playerWin && scoreState.winner === 0) {
             setFocusPlayerWin(playerWin)
             setIsCounting(true);
@@ -82,9 +86,9 @@ const Round = ({ navigation }) => {
         }
     }
     const handleSetRemaining = (item) => {
+        let remaining = 0;
         if (scoreState.playCouples) {
             let player = scoreState.playersPlay.find((player) => player.id === item.id);
-            let remaining = 0;
             if (player) {
                 const pair = player.pair; // Obtener el valor de pair del elemento encontrado
                 const totalPoints = scoreState.playersPlay.filter(player => player.pair === pair) // Filtrar los elementos con el mismo valor de pair
@@ -92,7 +96,7 @@ const Round = ({ navigation }) => {
                 remaining = (item.whiteActive ? (scoreState.numberTotal + item.numberEmpty) : scoreState.numberTotal) - (item.pointsRound ? (item.pointsRound + totalPoints) : totalPoints);
                 return remaining < 0 ? 0 : remaining
             }
-        } else {
+            } else {
             remaining = (item.whiteActive ? (scoreState.numberTotal + item.numberEmpty) : scoreState.numberTotal) - (item.pointsRound ? (item.pointsRound + item.points) : item.points);
             return remaining < 0 ? 0 : remaining
         }

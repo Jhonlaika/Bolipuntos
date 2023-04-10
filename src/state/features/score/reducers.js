@@ -164,29 +164,34 @@ export const scoreSlice = createSlice({
             state.playersPlay[index] = { ...state.playersPlay[index], pointsRound: (state.playersPlay[index].pointsRound) - 1 }
         },
         randomPlayerStart: (state) => {
-            let players = [...state.playersPlay];
-            function compareRandom() {
-                return Math.random() - 0.5;
-            }
-            players.sort(compareRandom);
-            let currentPair = 1;
-            for (let i = 0; i < players.length; i++) {
-                players[i].pair = currentPair;
-                if ((i + 1) % 2 === 0) {
-                    currentPair++;
+            if(state.playCouples){
+                let players = [...state.playersPlay];
+                function compareRandom() {
+                    return Math.random() - 0.5;
                 }
-            }
-            const backgroundColorMap = new Map();
-
-            for (let i = 0; i < players.length; i++) {
-                const player = players[i];
-                if (!backgroundColorMap.has(player.pair)) {
-                    backgroundColorMap.set(player.pair, player.backgroundColor);
-                } else {
-                    player.backgroundColor = backgroundColorMap.get(player.pair);
+                players.sort(compareRandom);
+                let currentPair = 1;
+                for (let i = 0; i < players.length; i++) {
+                    players[i].pair = currentPair;
+                    if ((i + 1) % 2 === 0) {
+                        currentPair++;
+                    }
                 }
+                const backgroundColorMap = new Map();
+    
+                for (let i = 0; i < players.length; i++) {
+                    const player = players[i];
+                    if (!backgroundColorMap.has(player.pair)) {
+                        backgroundColorMap.set(player.pair, player.backgroundColor);
+                    } else {
+                        player.backgroundColor = backgroundColorMap.get(player.pair);
+                    }
+                }
+                state.playersPlay = players;
+            }else{
+                state.playersPlay = state.playersPlay.sort(() => Math.random() - 0.5);
             }
-            state.playersPlay = state.playCouples ? players : state.playersPlay.sort(() => Math.random() - 0.5);
+            
             storeData(state.playersPlay, '@playersPlay')
         },
         setConfig: (state, action) => {
