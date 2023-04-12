@@ -26,9 +26,9 @@ const Round = ({ navigation }) => {
     //function
     const handleSaveRound = () => {
         let playerWin = scoreState.playersPlay.find(player => player.victoryPlace === 1);
-        
-        if(!(playerWin && scoreState.winner === 0) && data.some((player)=>player.pointsRound ==="" && !player.whiteActive && !player.victory)){
-           return alert('Debe ingresar los puntos de la ronda')
+
+        if (!(playerWin && scoreState.winner === 0) && data.some((player) => player.pointsRound === "" && !player.whiteActive && !player.victory)) {
+            return alert('Debe ingresar los puntos de la ronda')
         }
         if (playerWin && scoreState.winner === 0) {
             setFocusPlayerWin(playerWin)
@@ -96,7 +96,7 @@ const Round = ({ navigation }) => {
                 remaining = (item.whiteActive ? (scoreState.numberTotal + item.numberEmpty) : scoreState.numberTotal) - (item.pointsRound ? (item.pointsRound + totalPoints) : totalPoints);
                 return remaining < 0 ? 0 : remaining
             }
-            } else {
+        } else {
             remaining = (item.whiteActive ? (scoreState.numberTotal + item.numberEmpty) : scoreState.numberTotal) - (item.pointsRound ? (item.pointsRound + item.points) : item.points);
             return remaining < 0 ? 0 : remaining
         }
@@ -199,10 +199,10 @@ const Round = ({ navigation }) => {
                         <Text style={styles.winnerText}>{`¡Felicidades`}</Text>
                         {
                             scoreState.playCouples &&
-                            <View style={{flexDirection:'row',alignItems:'center',alignSelf:'center'}}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                                 {
-                                    scoreState.playersPlay.filter((player) => player.victoryPlace).map((player,index) => (
-                                        <Text index={index} style={{...styles.winnerText,alignSelf:'center'}}>{`${player.name} ${index ===0 ? ' y ':''}`}</Text>
+                                    scoreState.playersPlay.filter((player) => player.victoryPlace).map((player, index) => (
+                                        <Text index={index} style={{ ...styles.winnerText, alignSelf: 'center' }}>{`${player.name} ${index === 0 ? ' y ' : ''}`}</Text>
                                     ))
                                 }
                             </View>
