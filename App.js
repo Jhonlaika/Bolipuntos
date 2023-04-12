@@ -34,7 +34,7 @@ const App = () => {
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
         <StatusBar
           barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-          backgroundColor={'#196f3d'}
+          backgroundColor={colors.secondary}
         />
         <Navigation />
       </SafeAreaView>
