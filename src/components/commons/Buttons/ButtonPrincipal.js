@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
-import { colors } from '../../../utils/constants'
+import { colors, fontFamily } from '../../../utils/constants'
 import TextSimple from '../Text/TextSimple'
 
 const ButtonPrincipal = ({ text,backgroundColor,disabled,action,width,height,fontSize }) => {
@@ -24,5 +24,6 @@ const styles = StyleSheet.create({
     },
     text: {
         color: colors.white,
+        fontFamily:fontFamily.fontFamilyRegular
     }
 })

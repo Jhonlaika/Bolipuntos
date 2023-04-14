@@ -129,7 +129,7 @@ const Player = ({ navigation }) => {
                 setIsCounting(true);
                 const play = (error, sound) => sound.play()
                 const sound = new Sound(
-                    require('../../assets/sounds/spin.mp3'),
+                    require('../../../assets/sounds/spin.mp3'),
                     (error) => play(error, sound),
                 )
             } else {
@@ -143,7 +143,7 @@ const Player = ({ navigation }) => {
                 setIsCounting(true);
                 const play = (error, sound) => sound.play()
                 const sound = new Sound(
-                    require('../../assets/sounds/spin.mp3'),
+                    require('../../../assets/sounds/spin.mp3'),
                     (error) => play(error, sound),
                 )
             } else {

@@ -5,6 +5,18 @@ export const colors = {
     black:'#17202a',
     gray: "#a8a8a8",
 }
+export const fontFamily = {
+    fontFamilyBlack:'Lato-Black',
+    fontFamilyBlackItalic:'Lato-BlackItalic',
+    fontFamilyBold:'Lato-Bold',
+    fontFamilyBoldItalic:'Lato-BoldItalic', 
+    fontFamilyItalic:'Lato-Italic', 
+    fontFamilyLight:'Lato-Light',
+    fontFamilyLightItalic:'Lato-LightItalic',  
+    fontFamilyRegular:'Lato-Regular',
+    fontFamilyThin:'Lato-Thin',
+    fontFamilyThinItalic:'Lato-ThinItalic',
+}
 
 export function generateRandomColor() {
     // Componentes RGB aleatorios

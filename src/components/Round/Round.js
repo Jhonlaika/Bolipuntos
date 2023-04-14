@@ -35,7 +35,7 @@ const Round = ({ navigation }) => {
             setIsCounting(true);
             const play = (error, sound) => sound.play()
             const sound = new Sound(
-                require('../../assets/sounds/winner.mp3'),
+                require('../../../assets/sounds/winner.mp3'),
                 (error) => play(error, sound),
             )
         } else {

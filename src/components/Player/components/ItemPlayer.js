@@ -33,7 +33,7 @@ const ItemPlayer = ({
       }
       {
         score && item.victoryPlace === 1 &&
-        <Image resizeMode='contain' style={playCouples?{...styles.imageWinner,top:40}:{...styles.imageWinner,bottom:0}} source={require('../../../assets/images/winner.png')} />
+        <Image resizeMode='contain' style={playCouples?{...styles.imageWinner,top:40}:{...styles.imageWinner,bottom:0}} source={require('../../../../assets/images/winner.png')} />
       }
       <View style={score ? {
         ...styles.root,
