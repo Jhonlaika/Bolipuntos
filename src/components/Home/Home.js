@@ -1,48 +1,15 @@
 import { StyleSheet, View, Switch, Text } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import { colors } from '../../utils/constants'
-import { addEmpty, addPlayer, addPlayersPlay, addTotal, getPlayers, getPlayersPlay, onChangeEmpty, onChangePlayers, onChangeTotal, removeEmpty, removePlayer, removeTotal, setConfig, setPlayCouples, setRandomEmpty } from '../../state/features/score/reducers';
+import { addEmpty, addPlayer, addPlayersPlay, addTotal,onChangeEmpty, onChangePlayers, onChangeTotal, removeEmpty, removePlayer, removeTotal, setPlayCouples, setRandomEmpty } from '../../state/features/score/reducers';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal';
 import ItemScore from './components/ItemScore';
-import { getData } from '../../utils/storage';
 
 const Home = ({ navigation }) => {
   const dispatch = useDispatch();
   const scoreState = useSelector(state => state.score);
   const { numberPlayers, numberTotal, numberEmpty } = scoreState;
-
-  //useEffects
-  useEffect(() => {
-    getData('@players').then(json => {
-      if (json) {
-        dispatch(getPlayers(json))
-      }
-    }).catch(
-      err => {
-        console.log(err)
-      }
-    )
-    getData('@playersPlay').then(json => {
-      if (json) {
-        navigation.navigate('Score')
-        dispatch(getPlayersPlay(json))
-      }
-    }).catch(
-      err => {
-        console.log(err)
-      }
-    )
-    getData('@config').then(json => {
-      if (json) {
-        dispatch(setConfig(json))
-      }
-    }).catch(
-      err => {
-        console.log(err)
-      }
-    )
-  }, [])
 
   //functions
   //players
@@ -115,7 +82,7 @@ const Home = ({ navigation }) => {
     dispatch(setRandomEmpty())
   }
   const handlePlayCouples = () => {
-    dispatch(setPlayCouples())
+    dispatch(setPlayCouples(true))
   }
   return (
     <View style={styles.root}>
@@ -160,7 +127,9 @@ const Home = ({ navigation }) => {
           />
         </View>
       </View>
-      <View style={{ marginTop: 30, alignItems: 'center', width: '75%', justifyContent: 'space-between', flexDirection: 'row' }}>
+      {
+        scoreState.gameMode ==='roulette' &&
+        <View style={{ marginTop: 30, alignItems: 'center', width: '75%', justifyContent: 'space-between', flexDirection: 'row' }}>
         <Text style={{ fontSize: 20, color: colors.black }}>Jugar en parejas</Text>
         <Switch
           trackColor={{ false: '#767577', true: colors.primary }}
@@ -170,6 +139,7 @@ const Home = ({ navigation }) => {
           value={scoreState.playCouples}
         />
       </View>
+      }
       <View style={{ position: 'absolute', bottom: 10 }}>
         <ButtonPrincipal action={handleForm} disabled={numberPlayers === 0 || numberTotal === 0 || numberEmpty === 0} text={'Siguiente'} />
       </View>

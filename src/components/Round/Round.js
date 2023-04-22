@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import ItemPlayer from '../Player/components/ItemPlayer';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal';
-import { addTotalPoints, changeWhiteBlank, editPlayerPoints, onChangeEmptyPlayer, onChangePointsRound, removeTotalPoints, scoreSlice } from '../../state/features/score/reducers';
+import { addTotalPoints, changeWhiteBlank, editPlayerPoints, onChangeEmptyPlayer, onChangePointsRound, removeTotalPoints, scoreSlice, setVictoryPlayer } from '../../state/features/score/reducers';
 import Trophy from '../lotties/Trophy';
 import ModalEmpty from './components/ModalEmpty';
 import { colors } from '../../utils/constants';
+import ModalRandomName from './components/ModalRandomName';
 
 var Sound = require('react-native-sound');
 Sound.setCategory('Playback');
@@ -17,17 +18,20 @@ const Round = ({ navigation }) => {
     const [countdown, setCountdown] = useState(6);
     const [isCounting, setIsCounting] = useState(false);
     const [focusPlayerWin, setFocusPlayerWin] = useState({})
-    const [focusIndex, setFocusIndex] = useState('')
+    const [focusId, setFocusId] = useState('')
     const [isVisibleModalEmpty, setIsVisibleModalEmpty] = useState(false)
+    const [isVisibleModalRandomName, setIsVisibleModalRandomName] = useState(false)
     const [randomNumber, setRandomNumber] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isGeneratingName, setIsGeneratingName] = useState(false);
+    const [randomName, setRandomName] = useState(null);
     const [showRounds, setShowRounds] = useState([])
-    const data = scoreState.playCouples ? scoreState.playersPlay.filter((item, index) => scoreState.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0) : scoreState.playersPlay;
+    const data = scoreState.playCouples ? scoreState.playersPlay.filter((item, index) => (scoreState.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0)&&!item.victory) : scoreState.playersPlay.filter(player=>!player.victory);
     //function
-    const handleSaveRound = () => {
+    const handleSaveRound = (winner=false) => {
         let playerWin = scoreState.playersPlay.find(player => player.victoryPlace === 1);
 
-        if (!(playerWin && scoreState.winner === 0) && data.some((player) => player.pointsRound === "" && !player.whiteActive && !player.victory)) {
+        if (!(playerWin && scoreState.winner === 0) && data.some((player) => player.pointsRound === "" && !player.whiteActive && !player.victory && !winner)) {
             return alert('Debe ingresar los puntos de la ronda')
         }
         if (playerWin && scoreState.winner === 0) {
@@ -38,25 +42,24 @@ const Round = ({ navigation }) => {
                 require('../../../assets/sounds/winner.mp3'),
                 (error) => play(error, sound),
             )
-        } else {
+        } else if(scoreState.gameMode ==='roulette' && scoreState.playersPlay.filter(player => !player.victoryPlace>0).length>(scoreState.playCouples? 2:1) && data.find(player => player.victoryPlace > 0)){
+            handleSetModalRandomName()
+        } 
+        else{
             navigation.navigate('Score')
+            dispatch(editPlayerPoints())
         }
-        dispatch(editPlayerPoints())
     }
-    const handleChangePoints = (index, newValue) => {
-        let newIndex = scoreState.round % 2 === 0 ? (index + (index + 1)) : (index + index);
-        index = scoreState.playCouples ? newIndex : index;
-        dispatch(onChangePointsRound({ index: index, newValue: newValue }))
+    const handleChangePoints = (id, newValue) => {
+        dispatch(onChangePointsRound({ id: id, newValue: newValue }))
     }
-    const handleActiveWhite = (index) => {
-        let newIndex = scoreState.round % 2 === 0 ? (index + (index + 1)) : (index + index);
-        index = scoreState.playCouples ? newIndex : index;
-
-        if (scoreState.randomEmpty && !scoreState.playersPlay[index].whiteActive) {
-            setFocusIndex(index)
-            handleAMenuActiveMenu(index)
+    const handleActiveWhite = (id) => {
+        
+        if (scoreState.randomEmpty && !scoreState.playersPlay.find(player=>player.id === id).whiteActive) {
+            setFocusId(id)
+            handleAMenuActiveMenu()
         } else {
-            dispatch(changeWhiteBlank({ index: index }))
+            dispatch(changeWhiteBlank({ id: id }))
         }
     }
     const handleAddTotalPoints = (index) => {
@@ -73,16 +76,30 @@ const Round = ({ navigation }) => {
         setIsGenerating(true)
         setIsVisibleModalEmpty(true)
     }
+    const handleSetModalRandomName = () => {
+        setIsVisibleModalRandomName(true)
+    }
+    
+    const handleCloseModalRandomName = () => {
+        dispatch(setVictoryPlayer(randomName?.id ? randomName?.id :0))
+        setIsVisibleModalRandomName(false)
+        setRandomName(null)
+        navigation.navigate('Score')
+        dispatch(editPlayerPoints())
+    }
+    const handleRandomName=()=>{
+       setIsGeneratingName(true)
+    }
     const handleCloseModal = () => {
-        dispatch(onChangeEmptyPlayer({ index: focusIndex, numberEmpty: randomNumber }))
-        dispatch(changeWhiteBlank({ index: focusIndex }))
+        dispatch(onChangeEmptyPlayer({ id: focusId, numberEmpty: randomNumber }))
+        dispatch(changeWhiteBlank({ id: focusId }))
         setIsVisibleModalEmpty(false)
     }
-    const handleShowRounds = (index) => {
-        if (showRounds.includes(index)) {
-            setShowRounds(showRounds.filter(item => item !== index));
+    const handleShowRounds = (id) => {
+        if (showRounds.includes(id)) {
+            setShowRounds(showRounds.filter(item => item !== id));
         } else {
-            setShowRounds([...showRounds, index])
+            setShowRounds([...showRounds, id])
         }
     }
     const handleSetRemaining = (item) => {
@@ -106,7 +123,7 @@ const Round = ({ navigation }) => {
             'Sortear blanco',
             'Estás seguro de que deseas sortear el blanco?',
             [
-                { text: "Cancelar", style: 'cancel', onPress: () => { } },
+                { text: "Cancelar", style: 'cancel', onPress: () => {} },
                 {
                     text: 'Aceptar',
                     style: 'destructive',
@@ -127,6 +144,23 @@ const Round = ({ navigation }) => {
             }
         } else {
             return ((item.pointsRound + item.points) - (item.whiteActive ? item.numberEmpty : 0)) > scoreState.numberTotal ? scoreState.numberTotal : ((item.pointsRound + item.points) - (item.whiteActive ? item.numberEmpty : 0))
+        }
+    }
+    const handleOnEndEditing =(item)=>{
+        let playerFind=scoreState.playersPlay.find(player=>player.id===item)
+        if(playerFind.victoryPlace>0){
+            Alert.alert(
+                'Jugador gano',
+                `${playerFind.name} ha completado este puntaje? `,
+                [
+                    { text: "No", style: 'cancel', onPress: () => {handleChangePoints(playerFind.id,0)} },
+                    {
+                        text: 'Si',
+                        style: 'destructive',
+                        onPress: () => handleSaveRound(true),
+                    },
+                ]
+            );
         }
     }
     //useEffects
@@ -150,6 +184,26 @@ const Round = ({ navigation }) => {
         };
     }, [isGenerating]);
     useEffect(() => {
+        let intervalId;
+        let timeoutId;
+        const eligibleNames = scoreState.playersPlay.filter(player => !player.victoryPlace>0);
+        if (isGeneratingName) {
+            intervalId = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * eligibleNames.length);
+                setRandomName(eligibleNames[randomIndex]);
+            }, 100);
+
+            timeoutId = setTimeout(() => {
+                clearInterval(intervalId);
+                setIsGeneratingName(false);
+            }, 7000);
+        }
+        return () => {
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+        };
+    }, [isGeneratingName,scoreState.playersPlay]);
+    useEffect(() => {
         navigation.setOptions({
             title: `Ronda ${scoreState.round}`,
             headerShown: !isCounting,
@@ -164,7 +218,12 @@ const Round = ({ navigation }) => {
         }
 
         if (countdown === 0) {
-            navigation.navigate('Score')
+            if(scoreState.gameMode ==='roulette'){
+                handleSetModalRandomName()
+            }else{
+                navigation.navigate('Score')
+                dispatch(editPlayerPoints())
+            }
             setIsCounting(false);
         }
 
@@ -176,6 +235,7 @@ const Round = ({ navigation }) => {
     (
         <ItemPlayer
             points={handleSetPoints(item)}
+            handleOnEndEditing={handleOnEndEditing}
             handleChangePoints={handleChangePoints}
             handleActiveWhite={handleActiveWhite}
             handleAddTotalPoints={handleAddTotalPoints}
@@ -191,6 +251,7 @@ const Round = ({ navigation }) => {
     )
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={isCounting ? { ...styles.root, justifyContent: 'center' } : styles.root}>
+           {isVisibleModalRandomName && <ModalRandomName playersPlay={scoreState.playersPlay} playCouples={scoreState.playCouples} handleRandomName={handleRandomName} isGenerating={isGeneratingName} randomName={randomName} isVisible={isVisibleModalRandomName} setModalVisible={handleCloseModalRandomName} />}
             <ModalEmpty isGenerating={isGenerating} randomNumber={randomNumber} isVisible={isVisibleModalEmpty} setModalVisible={handleCloseModal} />
             {
                 isCounting ?
@@ -201,7 +262,7 @@ const Round = ({ navigation }) => {
                             scoreState.playCouples &&
                             <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                                 {
-                                    scoreState.playersPlay.filter((player) => player.victoryPlace).map((player, index) => (
+                                    scoreState.playersPlay.filter((player) => player.victoryPlace ===1).map((player, index) => (
                                         <Text index={index} style={{ ...styles.winnerText, alignSelf: 'center' }}>{`${player.name} ${index === 0 ? ' y ' : ''}`}</Text>
                                     ))
                                 }

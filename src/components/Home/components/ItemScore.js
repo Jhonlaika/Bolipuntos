@@ -3,7 +3,7 @@ import React from 'react'
 import { colors } from '../../../utils/constants'
 import ButtonOperator from './ButtonOperator'
 
-const ItemScore = ({ visibleOperator,title, index, actionAdd, actionRemove, editableInput, onChangeText, value, color }) => {
+const ItemScore = ({ visibleOperator,onEndEditing,title, index, actionAdd, actionRemove, editableInput, onChangeText, value, color }) => {
     return (
         <View style={{ alignItems: 'center' }}>
             <Text style={{ ...styles.title, color: color }}>{title}</Text>
@@ -17,6 +17,7 @@ const ItemScore = ({ visibleOperator,title, index, actionAdd, actionRemove, edit
                     value={value && String(value)}
                     keyboardType='numeric'
                     maxLength={4}
+                    onEndEditing={onEndEditing}
                     editable={!editableInput}
                     style={{ ...styles.input, borderColor: color, color: color }} />
                 {

@@ -6,9 +6,9 @@ import ButtonPrincipal from '../../commons/Buttons/ButtonPrincipal'
 
 const ItemGameMode = ({ item, action }) => {
     return (
-        <TouchableOpacity style={styles.container}>
+        <TouchableOpacity onPress={()=>action(item)} style={styles.container}>
             <Image resizeMode='contain' style={styles.image} source={item.image} />
-            <View style={{...styles.containerText,backgroundColor: generateRandomColor()}}>
+            <View style={{...styles.containerText,backgroundColor: item.color}}>
                 <TextSimple style={styles.textTitle} text={item.title} />
                 <TextSimple style={styles.textDescription} text={item.description} />
             </View>
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
         fontFamily: fontFamily.fontFamilyRegular,
         color: colors.white,
         marginBottom: 30,
-        width: 150,
+        width: 140,
         textAlign:'center'
     }
 })

@@ -11,7 +11,8 @@ const initialState = {
     players: [],
     playersPlay: [],
     newPlayer: '',
-    winner: 0
+    winner: 0,
+    gameMode: ''
 }
 export const scoreSlice = createSlice({
     name: 'score',
@@ -66,7 +67,8 @@ export const scoreSlice = createSlice({
                 randomEmpty: state.randomEmpty,
                 playCouples: state.playCouples,
                 round: state.round,
-                winner: 0
+                winner: 0,
+                gameMode: state.gameMode
             }, '@config')
         },
         editPlayerPlay: (state, action) => {
@@ -74,10 +76,11 @@ export const scoreSlice = createSlice({
             state.playersPlay[index] = { ...state.playersPlay[index], ...newValue }
         },
         onChangePointsRound: (state, action) => {
-            const { index, newValue } = action.payload;
+            const { id, newValue } = action.payload;
             let totalPoints = 0;
-            let currentVictoryPlace = state.playersPlay[index].victoryPlace;
-            let pairValue = state.playersPlay[index].pair;
+            let playerFind = state.playersPlay.find(player => player.id === id);
+            let currentVictoryPlace = playerFind.victoryPlace;
+            let pairValue = playerFind.pair;
 
             if (state.playCouples) {
                 state.playersPlay.forEach(player => {
@@ -85,40 +88,45 @@ export const scoreSlice = createSlice({
                         totalPoints += player.points;
                     }
                 });
-                totalPoints +=(newValue ? parseInt(newValue) : 0);
+                totalPoints = (totalPoints + (newValue ? parseInt(newValue) : 0)) > state.numberTotal ? state.numberTotal : (totalPoints + (newValue ? parseInt(newValue) : 0));
             } else {
-                totalPoints = state.playersPlay[index].points + (newValue ? parseInt(newValue) : 0)
+                totalPoints = (playerFind.points + (newValue ? parseInt(newValue) : 0)) > state.numberTotal ? state.numberTotal : (playerFind.points + (newValue ? parseInt(newValue) : 0))
             }
             if (totalPoints >= state.numberTotal) {
-                state.playersPlay.forEach((player, i) => {
-                    if (i !== index && player.victoryPlace > currentVictoryPlace) {
-                        currentVictoryPlace = player.victoryPlace + 1;
-                    }
-                });
-                if (currentVictoryPlace === state.playersPlay[index].victoryPlace) {
-                    currentVictoryPlace = 1;
+                let playerWithMaxVictoryPlace = state.playersPlay.reduce((prevPlayer, currentPlayer) => {
+                    return (currentPlayer.victoryPlace > prevPlayer.victoryPlace) ? currentPlayer : prevPlayer;
+                })
+                if (!(playerFind.pointsRound === parseInt(newValue))) {
+                    currentVictoryPlace = playerWithMaxVictoryPlace.victoryPlace + 1;
                 }
             } else {
                 currentVictoryPlace = 0
             }
             if (!state.playCouples) {
-                state.playersPlay[index] = { ...state.playersPlay[index], victoryPlace: currentVictoryPlace, pointsRound: newValue ? parseInt(newValue) : '' }
+                state.playersPlay = state.playersPlay.map((obj) => {
+                    if (obj.id === id) {
+                        return { ...obj, victoryPlace: currentVictoryPlace, pointsRound: newValue ? parseInt(newValue) : '' }
+                    } else {
+                        return obj
+                    }
+                })
             } else {
-                state.playersPlay = state.playersPlay.map((obj,index) => {
-                    return { ...obj, victoryPlace: obj.pair === pairValue ? currentVictoryPlace : obj.victoryPlace, pointsRound: index ===action.payload.index  ? newValue ? parseInt(newValue) : '': obj.pointsRound }
+                state.playersPlay = state.playersPlay.map((obj) => {
+                    return { ...obj, victoryPlace: obj.pair === pairValue ? currentVictoryPlace : obj.victoryPlace, pointsRound: obj.id === id ? newValue ? parseInt(newValue) : '' : obj.pointsRound }
                 })
             }
         },
         editPlayerPoints: (state) => {
             state.playersPlay = state.playersPlay.map((obj) => {
-                let findPlayer=state.playersPlay.find((item, index) => (item.pair === obj.pair)&&(state.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0));
-                return { 
-                    ...obj, 
-                    points: obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0), 
-                    pointsRound: '', 
-                    rounds: [...obj.rounds,state.playCouples? (findPlayer.whiteActive ? `${findPlayer.name} ${(-findPlayer.numberEmpty)}` : `${findPlayer.name} ${findPlayer.pointsRound}` ) : (obj.whiteActive ? (-obj.numberEmpty) : obj.pointsRound)], 
-                    numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites, 
-                    whiteActive: false }
+                let findPlayer = state.playersPlay.find((item, index) => (item.pair === obj.pair) && (state.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0));
+                return {
+                    ...obj,
+                    points: obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0),
+                    pointsRound: '',
+                    rounds: [...obj.rounds, state.playCouples ? (findPlayer.whiteActive ? `${findPlayer.name} ${(-findPlayer.numberEmpty)}` : `${findPlayer.name} ${findPlayer.pointsRound}`) : (obj.whiteActive ? (-obj.numberEmpty) : obj.pointsRound)],
+                    numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites,
+                    whiteActive: false
+                }
             })
             let sumByPair = {};
             for (let i = 0; i < state.playersPlay.length; i++) {
@@ -147,13 +155,20 @@ export const scoreSlice = createSlice({
                 randomEmpty: state.randomEmpty,
                 playCouples: state.playCouples,
                 round: state.round,
-                winner: playerWin?.id ? playerWin.id : 0
+                winner: playerWin?.id ? playerWin.id : 0,
+                gameMode: state.gameMode
             }, '@config')
             storeData(state.playersPlay, '@playersPlay')
         },
         changeWhiteBlank: (state, action) => {
-            const { index } = action.payload;
-            state.playersPlay[index] = { ...state.playersPlay[index], pointsRound: '', whiteActive: !state.playersPlay[index].whiteActive }
+            const { id } = action.payload;
+            state.playersPlay = state.playersPlay.map((obj) => {
+                if (obj.id === id) {
+                    return { ...obj, pointsRound: '', whiteActive: !obj.whiteActive }
+                } else {
+                    return obj
+                }
+            })
         },
         addTotalPoints: (state, action) => {
             const { index } = action.payload;
@@ -164,7 +179,7 @@ export const scoreSlice = createSlice({
             state.playersPlay[index] = { ...state.playersPlay[index], pointsRound: (state.playersPlay[index].pointsRound) - 1 }
         },
         randomPlayerStart: (state) => {
-            if(state.playCouples){
+            if (state.playCouples) {
                 let players = [...state.playersPlay];
                 function compareRandom() {
                     return Math.random() - 0.5;
@@ -178,7 +193,7 @@ export const scoreSlice = createSlice({
                     }
                 }
                 const backgroundColorMap = new Map();
-    
+
                 for (let i = 0; i < players.length; i++) {
                     const player = players[i];
                     if (!backgroundColorMap.has(player.pair)) {
@@ -188,14 +203,14 @@ export const scoreSlice = createSlice({
                     }
                 }
                 state.playersPlay = players;
-            }else{
+            } else {
                 state.playersPlay = state.playersPlay.sort(() => Math.random() - 0.5);
             }
-            
+
             storeData(state.playersPlay, '@playersPlay')
         },
         setConfig: (state, action) => {
-            const { numberPlayers, numberEmpty, randomEmpty, numberTotal, winner, round, playCouples } = action.payload
+            const { numberPlayers, numberEmpty, randomEmpty, numberTotal, winner, round, playCouples, gameMode } = action.payload
             state.numberPlayers = numberPlayers
             state.numberEmpty = numberEmpty
             state.randomEmpty = randomEmpty
@@ -203,17 +218,59 @@ export const scoreSlice = createSlice({
             state.numberTotal = numberTotal
             state.winner = winner
             state.round = round
+            state.gameMode = gameMode
         },
         setRandomEmpty: (state) => {
             state.randomEmpty = !state.randomEmpty
         },
-        setPlayCouples: (state) => {
-            state.playCouples = !state.playCouples
+        setPlayCouples: (state, action) => {
+            state.playCouples = action.payload
         },
         onChangeEmptyPlayer: (state, action) => {
-            const { index, numberEmpty } = action.payload;
-            state.playersPlay[index] = { ...state.playersPlay[index], numberEmpty: numberEmpty }
+            const { id, numberEmpty } = action.payload;
+            state.playersPlay = state.playersPlay.map((obj) => {
+                if (obj.id === id) {
+                    return { ...obj, numberEmpty: numberEmpty }
+                } else {
+                    return obj
+                }
+            })
         },
+        setGameMode: (state, action) => {
+            state.gameMode = action.payload
+        },
+        setVictoryPlayer: (state, action) => {
+            let playerWithMaxVictoryPlace = state.playersPlay.reduce((prevPlayer, currentPlayer) => {
+                return (currentPlayer.victoryPlace > prevPlayer.victoryPlace) ? currentPlayer : prevPlayer;
+            });
+            if (state.playCouples) {
+                state.playersPlay = state.playersPlay.map(player => {
+                    if (player.pair === state.playersPlay.find(player=> player.id ===action.payload).pair) {
+                        return {
+                            ...player,
+                            victory: true,
+                            victoryPlace: playerWithMaxVictoryPlace.victoryPlace + 1,
+                            points: state.numberTotal
+                        };
+                    } else {
+                        return player;
+                    }
+                });
+            } else {   
+                state.playersPlay = state.playersPlay.map(player => {
+                    if (player.id === action.payload) {
+                        return {
+                            ...player,
+                            victory: true,
+                            victoryPlace: playerWithMaxVictoryPlace.victoryPlace + 1,
+                            points: state.numberTotal
+                        };
+                    } else {
+                        return player;
+                    }
+                });
+            }
+        }
     }
 })
 export const {
@@ -241,7 +298,9 @@ export const {
     setConfig,
     setRandomEmpty,
     onChangeEmptyPlayer,
-    setPlayCouples
+    setPlayCouples,
+    setGameMode,
+    setVictoryPlayer
 } = scoreSlice.actions;
 
 export default scoreSlice.reducer;

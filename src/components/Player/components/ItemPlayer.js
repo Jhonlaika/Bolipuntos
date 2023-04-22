@@ -19,12 +19,16 @@ const ItemPlayer = ({
   disabled, 
   points = 0, 
   totalPoints,
-  remaining 
+  remaining,
+  scoreTotal,
+  handleOnEndEditing
 }) => {
   const setPoints = (value) => {
-    handleChangePoints(index, value)
+    handleChangePoints(item.id, value)
   }
-
+  const setOnEndEditing=()=>{
+    handleOnEndEditing(item.id)
+  }
   return (
     <View>
       {
@@ -61,12 +65,13 @@ const ItemPlayer = ({
                   editableInput={item.whiteActive || (item.victoryPlace >= 1 && item.victory)}
                   actionAdd={handleAddTotalPoints}
                   index={index}
+                  onEndEditing={setOnEndEditing}
                   actionRemove={handleRemoveTotalPoints}
                   onChangeText={setPoints}
                   color={item?.backgroundColor ? item.backgroundColor : colors.primary} />
               </View>
               <View style={{ alignItems: 'center', marginTop: 5 }}>
-                <TouchableOpacity disabled={(item.victoryPlace >= 1 && item.victory)} onPress={() => handleActiveWhite(index)} style={{ ...styles.select, backgroundColor: item.whiteActive ? item?.backgroundColor ? item.backgroundColor : colors.primary : colors.white }} />
+                <TouchableOpacity disabled={(item.victoryPlace >= 1 && item.victory)} onPress={() => handleActiveWhite(item.id)} style={{ ...styles.select, backgroundColor: item.whiteActive ? item?.backgroundColor ? item.backgroundColor : colors.primary : colors.white }} />
                 <Text style={{ color: colors.black }}>blanco</Text>
               </View>
             </View>
@@ -91,12 +96,12 @@ const ItemPlayer = ({
           <View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>{`Restante: ${remaining <0 ? 0 : remaining}`}</Text>
-              <TouchableOpacity onPress={() => handleShowRounds(index)}>
+              <TouchableOpacity onPress={() => handleShowRounds(item.id)}>
                 <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>Ver rondas</Text>
               </TouchableOpacity>
             </View>
             {
-              showRounds.includes(index) &&
+              showRounds.includes(item.id) &&
               <View style={{ marginVertical: 10, flexWrap: 'wrap', flexDirection: 'row' }}>
                 {item.rounds.map((round, index) => (
                   <Text index={index} style={{ ...styles.textRemaining, marginTop: 5, width: '50%' }}>{`Ronda ${index + 1}: ${round ? round : 0}`}</Text>
@@ -119,7 +124,7 @@ const ItemPlayer = ({
               ?
               <>
                 <Text style={{ ...styles.subTitlePoints, fontSize: 20, color: item.backgroundColor, fontWeight: 'bold' }}>{`Total Pareja`}</Text>
-                <Text style={{ ...styles.subTitlePoints, fontSize: 20, color: item.backgroundColor, fontWeight: 'bold' }}>{totalPoints}</Text>
+                <Text style={{ ...styles.subTitlePoints, fontSize: 20, color: item.backgroundColor, fontWeight: 'bold' }}>{totalPoints > scoreTotal ? scoreTotal:totalPoints}</Text>
 
               </>
               :

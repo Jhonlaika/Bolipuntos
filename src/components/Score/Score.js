@@ -5,18 +5,19 @@ import ItemPlayer from '../Player/components/ItemPlayer';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal';
 import { colors } from '../../utils/constants';
 import { removeValue, storeData } from '../../utils/storage';
-import { setConfig } from '../../state/features/score/reducers';
+import { getPlayersPlay, setConfig } from '../../state/features/score/reducers';
 
 const Score = ({ navigation, route }) => {
     const scoreState = useSelector(state => state.score);
     const dispatch = useDispatch();
+
     //function
     const handleNextRound = () => {
         navigation.navigate('Round')
 
     }
     const handleFinishGame = () => {
-        navigation.navigate('Home')
+        navigation.navigate('InitView',{finishGame:true})
         dispatch(setConfig({
             numberPlayers: 1,
             numberTotal: 1500,
@@ -24,7 +25,8 @@ const Score = ({ navigation, route }) => {
             randomEmpty: false,
             playCouples: false,
             round: 1,
-            winner: 0
+            winner: 0,
+            gameMode:''
         }))
         storeData({
             numberPlayers: 1,
@@ -33,8 +35,10 @@ const Score = ({ navigation, route }) => {
             randomEmpty: false,
             playCouples: false,
             round: 1,
-            winner: 0
+            winner: 0,
+            gameMode:''
         }, '@config')
+        dispatch(getPlayersPlay([]))
         removeValue('@playersPlay')
     }
     const backAction = () => {
@@ -94,13 +98,6 @@ const Score = ({ navigation, route }) => {
     }, []);
 
     useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
-
-        });
-        return unsubscribe;
-    }, [navigation]);
-
-    useEffect(() => {
         navigation.setOptions({
             headerLeft: () => (
                 <TouchableOpacity style={{ paddingVertical: 10 }} onPress={handleMenuFinishGame}>
@@ -122,6 +119,7 @@ const Score = ({ navigation, route }) => {
             playCouples={scoreState.playCouples}
             victoryPlace={item.victoryPlace}
             item={item}
+            scoreTotal={scoreState.numberTotal}
             index={index} />
     )
     return (
