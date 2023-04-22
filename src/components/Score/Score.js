@@ -5,7 +5,7 @@ import ItemPlayer from '../Player/components/ItemPlayer';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal';
 import { colors } from '../../utils/constants';
 import { removeValue, storeData } from '../../utils/storage';
-import { getPlayersPlay, setConfig } from '../../state/features/score/reducers';
+import { getPlayersPlay, randomPlayerStart, restartGame, setConfig } from '../../state/features/score/reducers';
 
 const Score = ({ navigation, route }) => {
     const scoreState = useSelector(state => state.score);
@@ -17,7 +17,7 @@ const Score = ({ navigation, route }) => {
 
     }
     const handleFinishGame = () => {
-        navigation.navigate('InitView',{finishGame:true})
+        navigation.navigate('InitView', { finishGame: true })
         dispatch(setConfig({
             numberPlayers: 1,
             numberTotal: 1500,
@@ -26,7 +26,7 @@ const Score = ({ navigation, route }) => {
             playCouples: false,
             round: 1,
             winner: 0,
-            gameMode:''
+            gameMode: ''
         }))
         storeData({
             numberPlayers: 1,
@@ -36,10 +36,18 @@ const Score = ({ navigation, route }) => {
             playCouples: false,
             round: 1,
             winner: 0,
-            gameMode:''
+            gameMode: ''
         }, '@config')
         dispatch(getPlayersPlay([]))
         removeValue('@playersPlay')
+    }
+    const handleRestartGame = (random) => {
+        if (random) {
+            dispatch(restartGame())
+            dispatch(randomPlayerStart())
+        } else {
+            dispatch(restartGame())
+        }
     }
     const backAction = () => {
         handleMenuFinishGame()
@@ -55,6 +63,34 @@ const Score = ({ navigation, route }) => {
                     text: 'Aceptar',
                     style: 'destructive',
                     onPress: () => handleFinishGame(),
+                },
+            ]
+        );
+    }
+    const handleMenuRestartGame = () => {
+        Alert.alert(
+            'Reiniciar juego',
+            'Estás seguro de que deseas reiniciar el juego?',
+            [
+                { text: "Cancelar", style: 'cancel', onPress: () => { } },
+                {
+                    text: 'Aceptar',
+                    style: 'destructive',
+                    onPress: () => handleMenuRandomGame(),
+                },
+            ]
+        );
+    }
+    const handleMenuRandomGame = () => {
+        Alert.alert(
+            'Sortear juego',
+            'Deseas sortear el juego?',
+            [
+                { text: "Cancelar", style: 'cancel', onPress: () => { handleRestartGame(false) } },
+                {
+                    text: 'Aceptar',
+                    style: 'destructive',
+                    onPress: () => handleRestartGame(true),
                 },
             ]
         );
@@ -81,7 +117,7 @@ const Score = ({ navigation, route }) => {
                 const totalPoints = scoreState.playersPlay.filter(player => player.pair === pair) // Filtrar los elementos con el mismo valor de pair
                     .reduce((total, player) => total + player.points, 0);
 
-                return scoreState.numberTotal-totalPoints;
+                return scoreState.numberTotal - totalPoints;
             }
         } else {
             return scoreState.numberTotal - item.points;
@@ -104,6 +140,11 @@ const Score = ({ navigation, route }) => {
                     <Text style={{ color: colors.white }}>Terminar juego</Text>
                 </TouchableOpacity>
             ),
+            headerRight: () => (
+                <TouchableOpacity style={{ paddingVertical: 10 }} onPress={handleMenuRestartGame}>
+                    <Text style={{ color: colors.white }}>Reiniciar juego</Text>
+                </TouchableOpacity>
+            )
         });
     }, [navigation]);
     //components

@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { storeData } from '../../../utils/storage';
+import { generateRandomColor } from '../../../utils/constants';
 
 const initialState = {
     numberPlayers: 1,
@@ -245,7 +246,7 @@ export const scoreSlice = createSlice({
             });
             if (state.playCouples) {
                 state.playersPlay = state.playersPlay.map(player => {
-                    if (player.pair === state.playersPlay.find(player=> player.id ===action.payload).pair) {
+                    if (player.pair === state.playersPlay.find(player => player.id === action.payload).pair) {
                         return {
                             ...player,
                             victory: true,
@@ -256,7 +257,7 @@ export const scoreSlice = createSlice({
                         return player;
                     }
                 });
-            } else {   
+            } else {
                 state.playersPlay = state.playersPlay.map(player => {
                     if (player.id === action.payload) {
                         return {
@@ -270,6 +271,14 @@ export const scoreSlice = createSlice({
                     }
                 });
             }
+        },
+        restartGame: (state) => {
+            state.round = 1
+            state.winner = 0
+            state.playersPlay = state.playersPlay.map((obj) => {
+                return { ...obj, points:0,backgroundColor:generateRandomColor(),pointsRound:'',victory:false,victoryPlace:0,place:0,rounds:[],numberWhites:0 }
+            })
+            storeData(state.playersPlay, '@playersPlay')
         }
     }
 })
@@ -300,7 +309,8 @@ export const {
     onChangeEmptyPlayer,
     setPlayCouples,
     setGameMode,
-    setVictoryPlayer
+    setVictoryPlayer,
+    restartGame
 } = scoreSlice.actions;
 
 export default scoreSlice.reducer;
