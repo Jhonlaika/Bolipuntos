@@ -6,10 +6,16 @@ import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal';
 import { colors } from '../../utils/constants';
 import { removeValue, storeData } from '../../utils/storage';
 import { getPlayersPlay, randomPlayerStart, restartGame, setConfig } from '../../state/features/score/reducers';
+import Spin from '../lotties/Spin';
+var Sound = require('react-native-sound');
+Sound.setCategory('Playback');
 
 const Score = ({ navigation, route }) => {
     const scoreState = useSelector(state => state.score);
     const dispatch = useDispatch();
+    const [isCounting, setIsCounting] = useState(false);
+    const [countdown, setCountdown] = useState(6);
+
 
     //function
     const handleNextRound = () => {
@@ -45,6 +51,12 @@ const Score = ({ navigation, route }) => {
         if (random) {
             dispatch(restartGame())
             dispatch(randomPlayerStart())
+            setIsCounting(true);
+            const play = (error, sound) => sound.play()
+            const sound = new Sound(
+                require('../../../assets/sounds/spin.mp3'),
+                (error) => play(error, sound),
+            )
         } else {
             dispatch(restartGame())
         }
@@ -134,7 +146,24 @@ const Score = ({ navigation, route }) => {
     }, []);
 
     useEffect(() => {
+        let intervalId;
+        if (isCounting) {
+            intervalId = setInterval(() => {
+                setCountdown(countdown => countdown - 1);
+            }, 1000);
+        }
+
+        if (countdown === 0) {
+            setIsCounting(false);
+            setCountdown(6)
+        }
+
+        return () => clearInterval(intervalId);
+    }, [isCounting, countdown]);
+
+    useEffect(() => {
         navigation.setOptions({
+            headerShown: !isCounting,
             headerLeft: () => (
                 <TouchableOpacity style={{ paddingVertical: 10 }} onPress={handleMenuFinishGame}>
                     <Text style={{ color: colors.white }}>Terminar juego</Text>
@@ -146,7 +175,7 @@ const Score = ({ navigation, route }) => {
                 </TouchableOpacity>
             )
         });
-    }, [navigation]);
+    }, [navigation,isCounting]);
     //components
     const _renderItem = ({ item, index }) =>
     (
@@ -164,18 +193,25 @@ const Score = ({ navigation, route }) => {
             index={index} />
     )
     return (
-        <View style={styles.root}>
-            <Text style={styles.title}>Puntuación a ganar: <Text>{scoreState.numberTotal}</Text></Text>
-            <FlatList
-                contentContainerStyle={{ paddingBottom: 50, alignItems: 'center' }}
-                numColumns={2}
-                data={scoreState.playersPlay}
-                renderItem={_renderItem}
-                keyExtractor={(item, index) => index.toString()}
-            />
-            <View style={{ position: 'absolute', bottom: 10 }}>
-                <ButtonPrincipal action={handleNextRound} text={'Siguiente Ronda'} />
-            </View>
+        <View style={isCounting ?{...styles.root,justifyContent:'center'}:styles.root}>
+            {
+                isCounting ?
+                    <Spin width={350} height={350} />
+                    :
+                    <>
+                        <Text style={styles.title}>Puntuación a ganar: <Text>{scoreState.numberTotal}</Text></Text>
+                        <FlatList
+                            contentContainerStyle={{ paddingBottom: 50, alignItems: 'center' }}
+                            numColumns={2}
+                            data={scoreState.playersPlay}
+                            renderItem={_renderItem}
+                            keyExtractor={(item, index) => index.toString()}
+                        />
+                        <View style={{ position: 'absolute', bottom: 10 }}>
+                            <ButtonPrincipal action={handleNextRound} text={'Siguiente Ronda'} />
+                        </View>
+                    </>
+            }
         </View>
     )
 }

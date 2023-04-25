@@ -24,7 +24,7 @@ const ModalRandomName = ({ isGenerating,playersPlay,playCouples, isVisible, setM
                                 }
                             </TouchableOpacity>
                             <Text style={styles.textTitle}>{playCouples ? 'La pareja ganadora es:' :'El ganador es:'}</Text>
-                            {(playCouples && !isGenerating) ?
+                            {(playCouples && !isGenerating && randomName.id !==0) ?
                                 <Text style={{ ...styles.textNumber, color: randomName?.backgroundColor ? randomName.backgroundColor : colors.black }}>{randomName?.name ?  `${randomName.name} y ${playersPlay.find(player=>(player.id !== randomName.id && player.pair ===randomName.pair)).name}` : 0}</Text>
                                 :
                                 <Text style={{ ...styles.textNumber, color: randomName?.backgroundColor ? randomName.backgroundColor : colors.black }}>{randomName?.name ? randomName.name : 0}</Text>

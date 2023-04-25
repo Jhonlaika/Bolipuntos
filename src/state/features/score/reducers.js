@@ -6,6 +6,7 @@ const initialState = {
     numberPlayers: 1,
     numberTotal: 1500,
     numberEmpty: 50,
+    numberPlayerWinRandom:1,
     randomEmpty: false,
     playCouples: false,
     round: 1,
@@ -150,14 +151,8 @@ export const scoreSlice = createSlice({
             state.winner = playerWin?.id ? playerWin.id : 0;
             state.round = state.round + 1;
             storeData({
-                numberPlayers: state.numberPlayers,
-                numberTotal: state.numberTotal,
-                numberEmpty: state.numberEmpty,
-                randomEmpty: state.randomEmpty,
-                playCouples: state.playCouples,
-                round: state.round,
+                ...state,
                 winner: playerWin?.id ? playerWin.id : 0,
-                gameMode: state.gameMode
             }, '@config')
             storeData(state.playersPlay, '@playersPlay')
         },
@@ -244,39 +239,41 @@ export const scoreSlice = createSlice({
             let playerWithMaxVictoryPlace = state.playersPlay.reduce((prevPlayer, currentPlayer) => {
                 return (currentPlayer.victoryPlace > prevPlayer.victoryPlace) ? currentPlayer : prevPlayer;
             });
-            if (state.playCouples) {
-                state.playersPlay = state.playersPlay.map(player => {
-                    if (player.pair === state.playersPlay.find(player => player.id === action.payload).pair) {
-                        return {
-                            ...player,
-                            victory: true,
-                            victoryPlace: playerWithMaxVictoryPlace.victoryPlace + 1,
-                            points: state.numberTotal
-                        };
-                    } else {
-                        return player;
-                    }
-                });
-            } else {
-                state.playersPlay = state.playersPlay.map(player => {
-                    if (player.id === action.payload) {
-                        return {
-                            ...player,
-                            victory: true,
-                            victoryPlace: playerWithMaxVictoryPlace.victoryPlace + 1,
-                            points: state.numberTotal
-                        };
-                    } else {
-                        return player;
-                    }
-                });
+            if (action.payload !== 0) {
+                if (state.playCouples) {
+                    state.playersPlay = state.playersPlay.map(player => {
+                        if (player.pair === state.playersPlay.find(player => player.id === action.payload).pair) {
+                            return {
+                                ...player,
+                                victory: true,
+                                victoryPlace: playerWithMaxVictoryPlace.victoryPlace + 1,
+                                points: state.numberTotal
+                            };
+                        } else {
+                            return player;
+                        }
+                    });
+                } else {
+                    state.playersPlay = state.playersPlay.map(player => {
+                        if (player.id === action.payload) {
+                            return {
+                                ...player,
+                                victory: true,
+                                victoryPlace: playerWithMaxVictoryPlace.victoryPlace + 1,
+                                points: state.numberTotal
+                            };
+                        } else {
+                            return player;
+                        }
+                    });
+                }
             }
         },
         restartGame: (state) => {
             state.round = 1
             state.winner = 0
             state.playersPlay = state.playersPlay.map((obj) => {
-                return { ...obj, points:0,backgroundColor:generateRandomColor(),pointsRound:'',victory:false,victoryPlace:0,place:0,rounds:[],numberWhites:0 }
+                return { ...obj, points: 0, backgroundColor: generateRandomColor(), pointsRound: '', victory: false, victoryPlace: 0, place: 0, rounds: [], numberWhites: 0 }
             })
             storeData(state.playersPlay, '@playersPlay')
         }
