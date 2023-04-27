@@ -25,7 +25,7 @@ const Score = ({ navigation, route }) => {
     const handleFinishGame = () => {
         navigation.navigate('InitView', { finishGame: true })
         dispatch(setConfig({
-            numberPlayers: 1,
+            numberPlayers: 2,
             numberTotal: 1500,
             numberEmpty: 50,
             randomEmpty: false,
@@ -35,7 +35,7 @@ const Score = ({ navigation, route }) => {
             gameMode: ''
         }))
         storeData({
-            numberPlayers: 1,
+            numberPlayers: 2,
             numberTotal: 1500,
             numberEmpty: 50,
             randomEmpty: false,

@@ -1,11 +1,19 @@
-import { StyleSheet, Text, View, TextInput } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { colors } from '../../../utils/constants'
 import ButtonOperator from './ButtonOperator'
+import IconAwesome from 'react-native-vector-icons/FontAwesome5';
 
-const ItemScore = ({ visibleOperator,onEndEditing,title, index, actionAdd, actionRemove, editableInput, onChangeText, value, color }) => {
+
+const ItemScore = ({ colorIcon,showModalInfo, info=true, visibleOperator, onEndEditing, title, index, actionAdd, actionRemove, editableInput, onChangeText, value, color }) => {
     return (
         <View style={{ alignItems: 'center' }}>
+            {
+                info &&
+                <TouchableOpacity onPress={()=>showModalInfo(title)} style={styles.icon} >
+                    <IconAwesome size={20} color={colorIcon ? colorIcon : colors.white} name='info-circle' />
+                </TouchableOpacity>
+            }
             <Text style={{ ...styles.title, color: color }}>{title}</Text>
             <View style={styles.containerOperator}>
                 {
@@ -35,6 +43,10 @@ const styles = StyleSheet.create({
     title: {
         color: colors.white,
         fontSize: 18
+    },
+    icon: {
+        position: 'absolute',
+        left: 0
     },
     containerOperator: {
         flexDirection: 'row',

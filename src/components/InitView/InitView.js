@@ -9,7 +9,7 @@ import IconAwesome from 'react-native-vector-icons/FontAwesome5';
 import { getPlayers, getPlayersPlay, setConfig, setGameMode, setPlayCouples } from '../../state/features/score/reducers';
 import { getData, removeValue, storeData } from '../../utils/storage';
 
-const InitView = ({ navigation,route }) => {
+const InitView = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const scoreState = useSelector(state => state.score);
   const finishGame = route.params?.finishGame;
@@ -78,32 +78,35 @@ const InitView = ({ navigation,route }) => {
   const handleNewGame = () => {
     setGamesModesVisible(true)
     dispatch(setConfig({
-      numberPlayers: 1,
+      numberPlayers: 2,
       numberTotal: 1500,
       numberEmpty: 50,
       randomEmpty: false,
       playCouples: false,
       round: 1,
       winner: 0,
-      gameMode:''
+      gameMode: ''
     }))
     storeData({
-      numberPlayers: 1,
+      numberPlayers: 2,
       numberTotal: 1500,
       numberEmpty: 50,
       randomEmpty: false,
       playCouples: false,
       round: 1,
       winner: 0,
-      gameMode:''
+      gameMode: ''
     }, '@config')
-    if(scoreState.playersPlay.length>0){
+    if (scoreState.playersPlay.length > 0) {
       dispatch(getPlayersPlay([]))
       removeValue('@playersPlay')
     }
   }
   const handleSaveGame = () => {
     navigation.navigate('Score')
+  }
+  const handleAbout = () => {
+    navigation.navigate('About')
   }
   const handleActionItem = (item) => {
     if (item.id === 1) {
@@ -163,6 +166,13 @@ const InitView = ({ navigation,route }) => {
                 />
               </View>
             }
+            <View style={{ marginTop: 10 }}>
+              <ButtonPrincipal
+                action={handleAbout}
+                backgroundColor={colors.secondary}
+                text={'Acerca de'}
+              />
+            </View>
           </>
       }
     </View>

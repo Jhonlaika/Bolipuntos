@@ -2,7 +2,6 @@ import { StyleSheet, TouchableOpacity, View, Image } from 'react-native'
 import React from 'react'
 import TextSimple from '../../commons/Text/TextSimple'
 import { colors, fontFamily, generateRandomColor } from '../../../utils/constants'
-import ButtonPrincipal from '../../commons/Buttons/ButtonPrincipal'
 
 const ItemGameMode = ({ item, action }) => {
     return (

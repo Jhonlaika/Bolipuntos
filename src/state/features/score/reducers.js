@@ -3,7 +3,7 @@ import { storeData } from '../../../utils/storage';
 import { generateRandomColor } from '../../../utils/constants';
 
 const initialState = {
-    numberPlayers: 1,
+    numberPlayers: 2,
     numberTotal: 1500,
     numberEmpty: 50,
     numberPlayerWinRandom:1,
@@ -53,6 +53,7 @@ export const scoreSlice = createSlice({
         createPlayer: (state, action) => {
             state.players = [...state.players, action.payload]
             storeData(state.players, '@players')
+            state.newPlayer=''
         },
         getPlayers: (state, action) => {
             state.players = action.payload

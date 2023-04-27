@@ -61,6 +61,7 @@ const ItemPlayer = ({
               <View style={{ width: '60%' }}>
                 <ItemScore
                   visibleOperator
+                  info={false}
                   value={String(item.pointsRound)}
                   editableInput={item.whiteActive || (item.victoryPlace >= 1 && item.victory)}
                   actionAdd={handleAddTotalPoints}
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
   circle: {
     width: 60,
     height: 60,
-    borderRadius: 30,
+    borderRadius: 10,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',

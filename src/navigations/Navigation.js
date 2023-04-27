@@ -7,6 +7,7 @@ import { colors } from '../utils/constants';
 import Score from '../components/Score/Score';
 import Round from '../components/Round/Round';
 import InitView from '../components/InitView/InitView';
+import About from '../components/About/About';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +30,7 @@ const Navigation = () => {
                 <Stack.Screen options={{ title: 'Jugadores', headerTintColor: colors.white, headerTitleStyle: { color: colors.white }, headerStyle: { backgroundColor: colors.primary } }} name="Player" component={Player} />
                 <Stack.Screen options={{ title: 'Puntajes', headerTitleAlign: 'center', headerTintColor: colors.white, headerTitleStyle: { color: colors.white }, headerStyle: { backgroundColor: colors.primary } }} name="Score" component={Score} />
                 <Stack.Screen options={{ title: 'Ronda', headerTitleAlign: 'center', headerBackVisible: false, headerTintColor: colors.white, headerTitleStyle: { color: colors.white }, headerStyle: { backgroundColor: colors.primary } }} name="Round" component={Round} />
+                <Stack.Screen options={{title: 'Acerca de'}} name="About" component={About} />
             </Stack.Navigator>
         </NavigationContainer>
     )

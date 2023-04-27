@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, FlatList, Switch, Keyboard } from 'react-native'
+import { StyleSheet, Text, View, FlatList, Switch, Keyboard, TouchableOpacity } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal'
@@ -7,8 +7,12 @@ import ModalPlayer from './components/ModalPlayer';
 import ModalAddPlayer from './components/ModalAddPlayer';
 import { createPlayer, editPlayerPlay, onChangeNewPlayer, randomPlayerStart } from '../../state/features/score/reducers';
 import { storeData } from '../../utils/storage';
-import { colors, generateRandomColor } from '../../utils/constants';
+import { colors, fontFamily, generateRandomColor } from '../../utils/constants';
 import Spin from '../lotties/Spin';
+import TextSimple from '../commons/Text/TextSimple';
+import IconAwesome from 'react-native-vector-icons/FontAwesome5';
+import ModalInformation from '../commons/Modal/ModalInformation';
+
 var Sound = require('react-native-sound');
 Sound.setCategory('Playback');
 
@@ -32,6 +36,7 @@ const Player = ({ navigation }) => {
     const [countdown, setCountdown] = useState(6);
     const [isCounting, setIsCounting] = useState(false);
     const [showKeyboard, setShowKeyboard] = useState(false);
+    const [showModalInfo,setShowModalInfo]=useState(false)
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
     const toggleSwitchCouples = () => setIsEnabledCouples(previousState => !previousState);
 
@@ -152,6 +157,12 @@ const Player = ({ navigation }) => {
             }
         }
     }
+    const handleTextModal = () => {
+        return 'Selecciona los jugadores de tu lista de jugadores, si no tienes jugadores puedes crear los que quieras. Además de esto, puedes sortear el orden de juego de los jugadores.'
+    }
+    const handleShowModalInfo =()=>{
+        setShowModalInfo(!showModalInfo)
+      }
     //components
     const _renderItem = ({ item, index }) =>
     (
@@ -170,6 +181,7 @@ const Player = ({ navigation }) => {
                     <Spin width={350} height={350} />
                     :
                     <>
+                        <ModalInformation handleTextModal={handleTextModal} isVisible={showModalInfo} setModalVisible={handleShowModalInfo} />
                         <ModalPlayer
                             setModalVisible={setModalVisiblePlayer}
                             isVisible={isModalVisiblePlayer}
@@ -190,6 +202,12 @@ const Player = ({ navigation }) => {
                             newPlayer={scoreState.newPlayer}
                             setButtonAdd={setButtonAdd}
                         />
+                        <View style={styles.containerText}>
+                            <TextSimple style={styles.textTitle} text={'Selecciona el jugador'} />
+                            <TouchableOpacity onPress={() => setShowModalInfo(true)} style={styles.icon} >
+                                <IconAwesome size={25} color={colors.primary} name='info-circle' />
+                            </TouchableOpacity>
+                        </View>
                         <FlatList
                             contentContainerStyle={{ paddingBottom: 50 }}
                             style={{ width: '100%', paddingHorizontal: 30 }}
@@ -239,5 +257,20 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         paddingTop: 10,
-    }
+    },
+    textTitle: {
+        fontSize: 20,
+        fontFamily: fontFamily.fontFamilyRegular,
+        marginVertical: 5,
+    },
+    containerText:{ 
+        flexDirection: 'row', 
+        alignItems: 'center',
+        justifyContent:'center',
+        width:'100%' 
+},
+    icon: {
+        position: 'absolute',
+        right:15
+    },
 })
