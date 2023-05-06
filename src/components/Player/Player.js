@@ -5,7 +5,7 @@ import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal'
 import ItemPlayer from './components/ItemPlayer';
 import ModalPlayer from './components/ModalPlayer';
 import ModalAddPlayer from './components/ModalAddPlayer';
-import { createPlayer, editPlayerPlay, onChangeNewPlayer, randomPlayerStart } from '../../state/features/score/reducers';
+import { addElementPlayer, createPlayer, editPlayerPlay, onChangeNewPlayer, randomPlayerStart } from '../../state/features/score/reducers';
 import { storeData } from '../../utils/storage';
 import { colors, fontFamily, generateRandomColor } from '../../utils/constants';
 import Spin from '../lotties/Spin';
@@ -138,7 +138,11 @@ const Player = ({ navigation }) => {
                     (error) => play(error, sound),
                 )
             } else {
-                storeData(scoreState.playersPlay, '@playersPlay')
+                if(scoreState.gameMode === 'eliminated'){
+                    dispatch(addElementPlayer({key:'eliminated',value:false}))
+                }else{
+                    storeData(scoreState.playersPlay, '@playersPlay')
+                }
                 navigation.navigate('Score')
             }
 
@@ -152,7 +156,11 @@ const Player = ({ navigation }) => {
                     (error) => play(error, sound),
                 )
             } else {
-                storeData(scoreState.playersPlay, '@playersPlay')
+                if(scoreState.gameMode === 'eliminated'){
+                    dispatch(addElementPlayer({key:'eliminated',value:false}))
+                }else{
+                    storeData(scoreState.playersPlay, '@playersPlay')
+                }
                 navigation.navigate('Score')
             }
         }

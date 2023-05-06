@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Image, FlatList } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
-import { colors, fontFamily } from '../../utils/constants'
+import { colors, fontFamily, stateInitial } from '../../utils/constants'
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal'
 import TextSimple from '../commons/Text/TextSimple';
 import ItemGameMode from './components/ItemGameMode';
@@ -35,6 +35,13 @@ const InitView = ({ navigation, route }) => {
       description: 'Gira la ruleta al ganar y obtén la oportunidad de hacer que otro jugador gane automáticamente.',
       image: require('../../../assets/images/roulette.png'),
       color: 'rgb(134,1,219)'
+    },
+    {
+      id: 4,
+      title: 'Eliminación',
+      description: 'Los jugadores compiten para evitar quedar en último lugar durante un número determinado de rondas. El jugador con menos puntos es eliminado, hasta que solo queda un ganador.',
+      image: require('../../../assets/images/eliminated.jpg'),
+      color: 'rgb(200,100,219)'
     },
   ]
   //useEffects
@@ -78,24 +85,10 @@ const InitView = ({ navigation, route }) => {
   const handleNewGame = () => {
     setGamesModesVisible(true)
     dispatch(setConfig({
-      numberPlayers: 2,
-      numberTotal: 1500,
-      numberEmpty: 50,
-      randomEmpty: false,
-      playCouples: false,
-      round: 1,
-      winner: 0,
-      gameMode: ''
+      ...stateInitial
     }))
     storeData({
-      numberPlayers: 2,
-      numberTotal: 1500,
-      numberEmpty: 50,
-      randomEmpty: false,
-      playCouples: false,
-      round: 1,
-      winner: 0,
-      gameMode: ''
+      ...stateInitial
     }, '@config')
     if (scoreState.playersPlay.length > 0) {
       dispatch(getPlayersPlay([]))
@@ -117,9 +110,13 @@ const InitView = ({ navigation, route }) => {
       navigation.navigate('Home')
       dispatch(setGameMode('multiplayer'))
       dispatch(setPlayCouples(true))
-    } else {
+    } else if(item.id === 3) {
       navigation.navigate('Home')
       dispatch(setGameMode('roulette'))
+      dispatch(setPlayCouples(false))
+    }else{
+      navigation.navigate('Home')
+      dispatch(setGameMode('eliminated'))
       dispatch(setPlayCouples(false))
     }
   }

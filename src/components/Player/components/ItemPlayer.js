@@ -21,7 +21,8 @@ const ItemPlayer = ({
   totalPoints,
   remaining,
   scoreTotal,
-  handleOnEndEditing
+  handleOnEndEditing,
+  gameMode
 }) => {
   const setPoints = (value) => {
     handleChangePoints(item.id, value)
@@ -69,6 +70,7 @@ const ItemPlayer = ({
                   onEndEditing={setOnEndEditing}
                   actionRemove={handleRemoveTotalPoints}
                   onChangeText={setPoints}
+                  whiteActive={item.whiteActive}
                   color={item?.backgroundColor ? item.backgroundColor : colors.primary} />
               </View>
               <View style={{ alignItems: 'center', marginTop: 5 }}>
@@ -80,9 +82,9 @@ const ItemPlayer = ({
         </View>
         {
           score &&
-          <View style={{ marginTop: 10, height: !playCouples ? 70 : 25, justifyContent: 'space-between' }}>
+          <View style={{ marginTop: 10, height: !playCouples ? 70 : 25, justifyContent: gameMode !=='eliminated' ? 'space-between' :'space-around'}}>
             {
-              !playCouples &&
+              (!playCouples && gameMode !=='eliminated') &&
               <Text style={styles.subTitlePoints}>{`Restante: ${remaining <0 ?0:remaining}`}</Text>
             }
             <Text style={styles.subTitlePoints}>{`Blancos: ${item.numberWhites}`}</Text>
@@ -96,7 +98,9 @@ const ItemPlayer = ({
         {round &&
           <View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              {gameMode !=='eliminated' &&              
               <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>{`Restante: ${remaining <0 ? 0 : remaining}`}</Text>
+              }
               <TouchableOpacity onPress={() => handleShowRounds(item.id)}>
                 <Text style={{ ...styles.textRemaining, color: item.backgroundColor }}>Ver rondas</Text>
               </TouchableOpacity>

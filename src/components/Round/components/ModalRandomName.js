@@ -4,7 +4,7 @@ import Modal from 'react-native-modal';
 import { colors } from '../../../utils/constants';
 import ButtonPrincipal from '../../commons/Buttons/ButtonPrincipal';
 
-const ModalRandomName = ({ isGenerating,playersPlay,playCouples, isVisible, setModalVisible, randomName, handleRandomName }) => {
+const ModalRandomName = ({ isGenerating,playersPlay,playCouples,gameMode,isVisible, setModalVisible, randomName, handleRandomName }) => {
     return (
         <Modal
             propagateSwipe={true}
@@ -23,7 +23,7 @@ const ModalRandomName = ({ isGenerating,playersPlay,playCouples, isVisible, setM
                                     <Text style={styles.titleClose}>x</Text>
                                 }
                             </TouchableOpacity>
-                            <Text style={styles.textTitle}>{playCouples ? 'La pareja ganadora es:' :'El ganador es:'}</Text>
+                            <Text style={styles.textTitle}>{gameMode ==='eliminated' ? 'El eliminado es :' :(playCouples ? 'La pareja ganadora es:' :'El ganador es:')}</Text>
                             {(playCouples && !isGenerating && randomName.id !==0) ?
                                 <Text style={{ ...styles.textNumber, color: randomName?.backgroundColor ? randomName.backgroundColor : colors.black }}>{randomName?.name ?  `${randomName.name} y ${playersPlay.find(player=>(player.id !== randomName.id && player.pair ===randomName.pair)).name}` : 0}</Text>
                                 :
@@ -32,7 +32,7 @@ const ModalRandomName = ({ isGenerating,playersPlay,playCouples, isVisible, setM
                         </>
                         :
                         <>
-                            <Text style={styles.textTitle}>Presiona para sortear el ganador</Text>
+                            <Text style={styles.textTitle}>{gameMode ==='eliminated' ? 'Presiona para sortear el eliminado' : 'Presiona para sortear el ganador'}</Text>
                             <ButtonPrincipal action={handleRandomName} width={200} text={'Sortear'} />
                         </>
                 }

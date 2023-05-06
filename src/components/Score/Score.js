@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 import ItemPlayer from '../Player/components/ItemPlayer';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal';
-import { colors } from '../../utils/constants';
+import { colors, stateInitial } from '../../utils/constants';
 import { removeValue, storeData } from '../../utils/storage';
 import { getPlayersPlay, randomPlayerStart, restartGame, setConfig } from '../../state/features/score/reducers';
 import Spin from '../lotties/Spin';
@@ -15,8 +15,8 @@ const Score = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const [isCounting, setIsCounting] = useState(false);
     const [countdown, setCountdown] = useState(6);
-
-
+    const endGame = route.params?.endGame;
+    const resetGame = route.params?.resetGame;
     //function
     const handleNextRound = () => {
         navigation.navigate('Round')
@@ -25,24 +25,10 @@ const Score = ({ navigation, route }) => {
     const handleFinishGame = () => {
         navigation.navigate('InitView', { finishGame: true })
         dispatch(setConfig({
-            numberPlayers: 2,
-            numberTotal: 1500,
-            numberEmpty: 50,
-            randomEmpty: false,
-            playCouples: false,
-            round: 1,
-            winner: 0,
-            gameMode: ''
+            ...stateInitial
         }))
         storeData({
-            numberPlayers: 2,
-            numberTotal: 1500,
-            numberEmpty: 50,
-            randomEmpty: false,
-            playCouples: false,
-            round: 1,
-            winner: 0,
-            gameMode: ''
+            ...stateInitial
         }, '@config')
         dispatch(getPlayersPlay([]))
         removeValue('@playersPlay')
@@ -135,8 +121,21 @@ const Score = ({ navigation, route }) => {
             return scoreState.numberTotal - item.points;
         }
     }
+    const handleGetDataUsers=()=>{
+        if(scoreState.gameMode === 'eliminated'){
+           return scoreState.playersPlay.filter(player => !player.eliminated)  
+        }else{
+            return scoreState.playersPlay
+        }
+    }
+    const data = handleGetDataUsers();
+
 
     //useEffects
+    useEffect(() => {
+        endGame && handleFinishGame()
+        resetGame && handleMenuRandomGame()
+      }, [endGame,resetGame])
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
@@ -175,7 +174,7 @@ const Score = ({ navigation, route }) => {
                 </TouchableOpacity>
             )
         });
-    }, [navigation,isCounting]);
+    }, [navigation, isCounting]);
     //components
     const _renderItem = ({ item, index }) =>
     (
@@ -189,21 +188,22 @@ const Score = ({ navigation, route }) => {
             playCouples={scoreState.playCouples}
             victoryPlace={item.victoryPlace}
             item={item}
+            gameMode={scoreState.gameMode}
             scoreTotal={scoreState.numberTotal}
             index={index} />
     )
     return (
-        <View style={isCounting ?{...styles.root,justifyContent:'center'}:styles.root}>
+        <View style={isCounting ? { ...styles.root, justifyContent: 'center' } : styles.root}>
             {
                 isCounting ?
                     <Spin width={350} height={350} />
                     :
                     <>
-                        <Text style={styles.title}>Puntuación a ganar: <Text>{scoreState.numberTotal}</Text></Text>
+                        <Text style={styles.title}>{scoreState.gameMode === 'eliminated' ? 'Rondas por jugar: ': 'Puntuación a ganar: '}<Text>{scoreState.gameMode === 'eliminated' ? (scoreState.numberRoundsEliminated - (scoreState.round -1)) :scoreState.numberTotal}</Text></Text>
                         <FlatList
                             contentContainerStyle={{ paddingBottom: 50, alignItems: 'center' }}
                             numColumns={2}
-                            data={scoreState.playersPlay}
+                            data={data}
                             renderItem={_renderItem}
                             keyExtractor={(item, index) => index.toString()}
                         />

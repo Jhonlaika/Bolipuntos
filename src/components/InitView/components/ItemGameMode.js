@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     textTitle: {
         fontFamily: fontFamily.fontFamilyBold,
         color: colors.white,
-        fontSize: 20,
+        fontSize: 15,
         marginVertical: 10
     },
     textDescription: {

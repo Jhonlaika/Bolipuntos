@@ -6,9 +6,12 @@ const initialState = {
     numberPlayers: 2,
     numberTotal: 1500,
     numberEmpty: 50,
-    numberPlayerWinRandom:1,
     randomEmpty: false,
     playCouples: false,
+    numberPlayerWinRandom: 1,
+    numberRoundsEliminated: 1,
+    activeNumberPlayerWinRandom: false,
+    noPlayer: false,
     round: 1,
     players: [],
     playersPlay: [],
@@ -47,13 +50,28 @@ export const scoreSlice = createSlice({
         onChangeEmpty: (state, action) => {
             state.numberEmpty = action.payload
         },
+        addNumberPlayerWinRandom: (state) => {
+            state.numberPlayerWinRandom += 1;
+        },
+        removeNumberPlayerWinRandom: (state) => {
+            state.numberPlayerWinRandom -= 1;
+        },
+        onChangeNumberPlayerWinRandom: (state, action) => {
+            state.numberPlayerWinRandom = action.payload
+        },
+        setNoPlayer: (state) => {
+            state.noPlayer = !state.noPlayer
+        },
+        setActiveNumberPlayerWinRandom: (state) => {
+            state.activeNumberPlayerWinRandom = !state.activeNumberPlayerWinRandom
+        },
         onChangeNewPlayer: (state, action) => {
             state.newPlayer = action.payload
         },
         createPlayer: (state, action) => {
             state.players = [...state.players, action.payload]
             storeData(state.players, '@players')
-            state.newPlayer=''
+            state.newPlayer = ''
         },
         getPlayers: (state, action) => {
             state.players = action.payload
@@ -62,16 +80,21 @@ export const scoreSlice = createSlice({
             state.playersPlay = action.payload
         },
         addPlayersPlay: (state, action) => {
+            const { numberPlayers, activeNumberPlayerWinRandom, numberTotal, numberEmpty, randomEmpty, playCouples, round, gameMode, numberPlayerWinRandom, noPlayer, numberRoundsEliminated } = state;
             state.playersPlay = action.payload
             storeData({
-                numberPlayers: state.numberPlayers,
-                numberTotal: state.numberTotal,
-                numberEmpty: state.numberEmpty,
-                randomEmpty: state.randomEmpty,
-                playCouples: state.playCouples,
-                round: state.round,
+                numberPlayers,
+                numberTotal,
+                numberEmpty,
+                randomEmpty,
+                playCouples,
+                numberPlayerWinRandom,
+                activeNumberPlayerWinRandom,
+                numberRoundsEliminated,
+                noPlayer,
+                round,
                 winner: 0,
-                gameMode: state.gameMode
+                gameMode
             }, '@config')
         },
         editPlayerPlay: (state, action) => {
@@ -95,7 +118,7 @@ export const scoreSlice = createSlice({
             } else {
                 totalPoints = (playerFind.points + (newValue ? parseInt(newValue) : 0)) > state.numberTotal ? state.numberTotal : (playerFind.points + (newValue ? parseInt(newValue) : 0))
             }
-            if (totalPoints >= state.numberTotal) {
+            if (totalPoints >= state.numberTotal && state.gameMode !== 'eliminated') {
                 let playerWithMaxVictoryPlace = state.playersPlay.reduce((prevPlayer, currentPlayer) => {
                     return (currentPlayer.victoryPlace > prevPlayer.victoryPlace) ? currentPlayer : prevPlayer;
                 })
@@ -108,18 +131,19 @@ export const scoreSlice = createSlice({
             if (!state.playCouples) {
                 state.playersPlay = state.playersPlay.map((obj) => {
                     if (obj.id === id) {
-                        return { ...obj, victoryPlace: currentVictoryPlace, pointsRound: newValue ? parseInt(newValue) : '' }
+                        return { ...obj, victoryPlace: currentVictoryPlace, pointsRound: newValue ? newValue === '-' ? '-' : !isNaN(parseInt(newValue)) ? parseInt(newValue) : '' : '' }
                     } else {
                         return obj
                     }
                 })
             } else {
                 state.playersPlay = state.playersPlay.map((obj) => {
-                    return { ...obj, victoryPlace: obj.pair === pairValue ? currentVictoryPlace : obj.victoryPlace, pointsRound: obj.id === id ? newValue ? parseInt(newValue) : '' : obj.pointsRound }
+                    return { ...obj, victoryPlace: obj.pair === pairValue ? currentVictoryPlace : obj.victoryPlace, pointsRound: obj.id === id ? newValue ? newValue === '-' ? '-' : !isNaN(parseInt(newValue)) ? parseInt(newValue) : '' : '' : obj.pointsRound }
                 })
             }
         },
         editPlayerPoints: (state) => {
+            const { numberPlayers, activeNumberPlayerWinRandom, numberTotal, numberEmpty, randomEmpty, playCouples, round, gameMode, numberPlayerWinRandom, noPlayer, numberRoundsEliminated } = state;
             state.playersPlay = state.playersPlay.map((obj) => {
                 let findPlayer = state.playersPlay.find((item, index) => (item.pair === obj.pair) && (state.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0));
                 return {
@@ -147,13 +171,31 @@ export const scoreSlice = createSlice({
             let temporalPlayers = [...state.playersPlay];
             let sortedPlayers = state.playCouples ? temporalPlayers.sort((a, b) => sumByPair[b.pair] - sumByPair[a.pair]) : temporalPlayers.sort((a, b) => b.points - a.points);
             state.playersPlay = state.playersPlay.map((obj) => {
-                return { ...obj, points: (obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0)) > state.numberTotal ? state.numberTotal : (obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0)), place: state.playCouples ? ((sortedPlayers.findIndex(player => player.pair === obj.pair)) / 2) + 1 : (sortedPlayers.findIndex(player => player.id === obj.id)) + 1, pointsRound: '', victory: obj.victoryPlace >= 1 ? true : false, numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites, whiteActive: false }
+                return {
+                    ...obj,
+                    points: (obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0)) > state.numberTotal ? state.numberTotal : (obj.points + obj.pointsRound - (obj.whiteActive ? obj.numberEmpty : 0)),
+                    place: state.playCouples ? ((sortedPlayers.findIndex(player => player.pair === obj.pair)) / 2) + 1 : (sortedPlayers.findIndex(player => player.id === obj.id)) + 1,
+                    pointsRound: '',
+                    victory: obj.victoryPlace >= 1 ? true : false,
+                    numberWhites: obj.whiteActive ? obj.numberWhites + 1 : obj.numberWhites,
+                    whiteActive: false
+                }
             })
             state.winner = playerWin?.id ? playerWin.id : 0;
             state.round = state.round + 1;
             storeData({
-                ...state,
+                numberPlayers,
+                numberTotal,
+                numberEmpty,
+                randomEmpty,
+                playCouples,
+                numberPlayerWinRandom,
+                activeNumberPlayerWinRandom,
+                numberRoundsEliminated,
+                noPlayer,
+                round,
                 winner: playerWin?.id ? playerWin.id : 0,
+                gameMode
             }, '@config')
             storeData(state.playersPlay, '@playersPlay')
         },
@@ -207,15 +249,7 @@ export const scoreSlice = createSlice({
             storeData(state.playersPlay, '@playersPlay')
         },
         setConfig: (state, action) => {
-            const { numberPlayers, numberEmpty, randomEmpty, numberTotal, winner, round, playCouples, gameMode } = action.payload
-            state.numberPlayers = numberPlayers
-            state.numberEmpty = numberEmpty
-            state.randomEmpty = randomEmpty
-            state.playCouples = playCouples
-            state.numberTotal = numberTotal
-            state.winner = winner
-            state.round = round
-            state.gameMode = gameMode
+            Object.assign(state, action.payload);
         },
         setRandomEmpty: (state) => {
             state.randomEmpty = !state.randomEmpty
@@ -240,14 +274,17 @@ export const scoreSlice = createSlice({
             let playerWithMaxVictoryPlace = state.playersPlay.reduce((prevPlayer, currentPlayer) => {
                 return (currentPlayer.victoryPlace > prevPlayer.victoryPlace) ? currentPlayer : prevPlayer;
             });
-            if (action.payload !== 0) {
+            if (state.winner === 0) {
+                state.winner = playerWithMaxVictoryPlace.id
+            }
+            if (action.payload.id !== 0) {
                 if (state.playCouples) {
                     state.playersPlay = state.playersPlay.map(player => {
-                        if (player.pair === state.playersPlay.find(player => player.id === action.payload).pair) {
+                        if (player.pair === state.playersPlay.find(player => player.id === action.payload.id).pair) {
                             return {
                                 ...player,
                                 victory: true,
-                                victoryPlace: playerWithMaxVictoryPlace.victoryPlace + 1,
+                                victoryPlace: action.payload.changePlace ? playerWithMaxVictoryPlace.victoryPlace + 1 : playerWithMaxVictoryPlace.victoryPlace,
                                 points: state.numberTotal
                             };
                         } else {
@@ -256,11 +293,11 @@ export const scoreSlice = createSlice({
                     });
                 } else {
                     state.playersPlay = state.playersPlay.map(player => {
-                        if (player.id === action.payload) {
+                        if (player.id === action.payload.id) {
                             return {
                                 ...player,
                                 victory: true,
-                                victoryPlace: playerWithMaxVictoryPlace.victoryPlace + 1,
+                                victoryPlace: action.payload.changePlace ? playerWithMaxVictoryPlace.victoryPlace + 1 : playerWithMaxVictoryPlace.victoryPlace,
                                 points: state.numberTotal
                             };
                         } else {
@@ -274,8 +311,35 @@ export const scoreSlice = createSlice({
             state.round = 1
             state.winner = 0
             state.playersPlay = state.playersPlay.map((obj) => {
-                return { ...obj, points: 0, backgroundColor: generateRandomColor(), pointsRound: '', victory: false, victoryPlace: 0, place: 0, rounds: [], numberWhites: 0 }
+                return { ...obj, points: 0, backgroundColor: generateRandomColor(), pointsRound: '',eliminated:false ,victory: false, victoryPlace: 0, place: 0, rounds: [], numberWhites: 0 }
             })
+            storeData(state.playersPlay, '@playersPlay')
+        },
+        addNumberRoundsEliminated: (state) => {
+            state.numberRoundsEliminated += 1;
+        },
+        removeNumberRoundsEliminated: (state) => {
+            state.numberRoundsEliminated -= 1;
+        },
+        onChangeNumberRoundsEliminated: (state, action) => {
+            state.numberRoundsEliminated = action.payload
+        },
+        addElementPlayer: (state,action)=>{
+            const {key,value}=action.payload
+            state.playersPlay = state.playersPlay.map((obj) => {
+                return { ...obj,[key]:value}
+            })
+            storeData(state.playersPlay, '@playersPlay')
+        },
+        resetRoundsGame: (state,action)=>{
+            state.playersPlay = state.playersPlay.map((obj) => {
+                if(obj.id === action.payload){
+                    return { ...obj,points:0,pointsRound:'',place:0,eliminated:true,rounds:[]}
+                }else{
+                    return { ...obj,points:0,pointsRound:'',place:0,rounds:[]}
+                }
+            })
+            state.round=1
             storeData(state.playersPlay, '@playersPlay')
         }
     }
@@ -308,7 +372,17 @@ export const {
     setPlayCouples,
     setGameMode,
     setVictoryPlayer,
-    restartGame
+    restartGame,
+    addNumberPlayerWinRandom,
+    removeNumberPlayerWinRandom,
+    onChangeNumberPlayerWinRandom,
+    setNoPlayer,
+    setActiveNumberPlayerWinRandom,
+    addNumberRoundsEliminated,
+    removeNumberRoundsEliminated,
+    onChangeNumberRoundsEliminated,
+    addElementPlayer,
+    resetRoundsGame
 } = scoreSlice.actions;
 
 export default scoreSlice.reducer;
