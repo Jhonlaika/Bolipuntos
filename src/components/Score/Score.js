@@ -5,7 +5,7 @@ import ItemPlayer from '../Player/components/ItemPlayer';
 import ButtonPrincipal from '../commons/Buttons/ButtonPrincipal';
 import { colors, stateInitial } from '../../utils/constants';
 import { removeValue, storeData } from '../../utils/storage';
-import { getPlayersPlay, randomPlayerStart, restartGame, setConfig } from '../../state/features/score/reducers';
+import { getPlayersPlay, randomOrderCouples, randomPlayerStart, restartGame, setConfig } from '../../state/features/score/reducers';
 import Spin from '../lotties/Spin';
 var Sound = require('react-native-sound');
 Sound.setCategory('Playback');
@@ -17,6 +17,7 @@ const Score = ({ navigation, route }) => {
     const [countdown, setCountdown] = useState(6);
     const endGame = route.params?.endGame;
     const resetGame = route.params?.resetGame;
+    const randomGame = route.params?.randomGame;
     //function
     const handleNextRound = () => {
         navigation.navigate('Round')
@@ -37,15 +38,18 @@ const Score = ({ navigation, route }) => {
         if (random) {
             dispatch(restartGame())
             dispatch(randomPlayerStart())
-            setIsCounting(true);
-            const play = (error, sound) => sound.play()
-            const sound = new Sound(
-                require('../../../assets/sounds/spin.mp3'),
-                (error) => play(error, sound),
-            )
+            handleRandomGame()
         } else {
             dispatch(restartGame())
         }
+    }
+    const handleRandomGame = () => {
+        setIsCounting(true);
+        const play = (error, sound) => sound.play()
+        const sound = new Sound(
+            require('../../../assets/sounds/spin.mp3'),
+            (error) => play(error, sound),
+        )
     }
     const backAction = () => {
         handleMenuFinishGame()
@@ -121,10 +125,10 @@ const Score = ({ navigation, route }) => {
             return scoreState.numberTotal - item.points;
         }
     }
-    const handleGetDataUsers=()=>{
-        if(scoreState.gameMode === 'eliminated'){
-           return scoreState.playersPlay.filter(player => !player.eliminated)  
-        }else{
+    const handleGetDataUsers = () => {
+        if (scoreState.gameMode === 'eliminated') {
+            return scoreState.playersPlay.filter(player => !player.eliminated)
+        } else {
             return scoreState.playersPlay
         }
     }
@@ -135,7 +139,15 @@ const Score = ({ navigation, route }) => {
     useEffect(() => {
         endGame && handleFinishGame()
         resetGame && handleMenuRandomGame()
-      }, [endGame,resetGame])
+        if (randomGame?.id) {
+            if(scoreState.playCouples){
+                dispatch(randomOrderCouples())
+            }else{
+                dispatch(randomPlayerStart())
+            }
+            handleRandomGame()
+        }
+    }, [endGame, resetGame, randomGame])
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
@@ -153,6 +165,7 @@ const Score = ({ navigation, route }) => {
         }
 
         if (countdown === 0) {
+
             setIsCounting(false);
             setCountdown(6)
         }
@@ -199,7 +212,7 @@ const Score = ({ navigation, route }) => {
                     <Spin width={350} height={350} />
                     :
                     <>
-                        <Text style={styles.title}>{scoreState.gameMode === 'eliminated' ? 'Rondas por jugar: ': 'Puntuación a ganar: '}<Text>{scoreState.gameMode === 'eliminated' ? (scoreState.numberRoundsEliminated - (scoreState.round -1)) :scoreState.numberTotal}</Text></Text>
+                        <Text style={styles.title}>{scoreState.gameMode === 'eliminated' ? 'Rondas por jugar: ' : 'Puntuación a ganar: '}<Text>{scoreState.gameMode === 'eliminated' ? (scoreState.numberRoundsEliminated - (scoreState.round - 1)) : scoreState.numberTotal}</Text></Text>
                         <FlatList
                             contentContainerStyle={{ paddingBottom: 50, alignItems: 'center' }}
                             numColumns={2}

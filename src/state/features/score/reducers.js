@@ -143,7 +143,7 @@ export const scoreSlice = createSlice({
             }
         },
         editPlayerPoints: (state) => {
-            const { numberPlayers, activeNumberPlayerWinRandom, numberTotal, numberEmpty, randomEmpty, playCouples, round, gameMode, numberPlayerWinRandom, noPlayer, numberRoundsEliminated } = state;
+            const { numberPlayers, activeNumberPlayerWinRandom, numberTotal, numberEmpty, randomEmpty, playCouples, gameMode, numberPlayerWinRandom, noPlayer, numberRoundsEliminated } = state;
             state.playersPlay = state.playersPlay.map((obj) => {
                 let findPlayer = state.playersPlay.find((item, index) => (item.pair === obj.pair) && (state.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0));
                 return {
@@ -193,7 +193,7 @@ export const scoreSlice = createSlice({
                 activeNumberPlayerWinRandom,
                 numberRoundsEliminated,
                 noPlayer,
-                round,
+                round: state.round,
                 winner: playerWin?.id ? playerWin.id : 0,
                 gameMode
             }, '@config')
@@ -242,11 +242,25 @@ export const scoreSlice = createSlice({
                     }
                 }
                 state.playersPlay = players;
-            } else {
+            } 
+            else {
                 state.playersPlay = state.playersPlay.sort(() => Math.random() - 0.5);
             }
 
             storeData(state.playersPlay, '@playersPlay')
+        },
+        randomOrderCouples: (state)=>{
+            let players = state.playersPlay.sort(() => Math.random() - 0.5)
+            let sortedPlayers = [];
+            players.forEach(player => {
+                const index = sortedPlayers.findIndex(p => p.pair === player.pair);
+                if (index === -1) {
+                  sortedPlayers.push(player);
+                } else {
+                  sortedPlayers.splice(index + 1, 0, player);
+                }
+              });  
+              state.playersPlay =sortedPlayers 
         },
         setConfig: (state, action) => {
             Object.assign(state, action.payload);
@@ -308,11 +322,26 @@ export const scoreSlice = createSlice({
             }
         },
         restartGame: (state) => {
+            const { numberPlayers, activeNumberPlayerWinRandom, numberTotal, numberEmpty, randomEmpty, playCouples, gameMode, numberPlayerWinRandom, noPlayer, numberRoundsEliminated } = state;
             state.round = 1
             state.winner = 0
             state.playersPlay = state.playersPlay.map((obj) => {
                 return { ...obj, points: 0, backgroundColor: generateRandomColor(), pointsRound: '',eliminated:false ,victory: false, victoryPlace: 0, place: 0, rounds: [], numberWhites: 0 }
             })
+            storeData({
+                numberPlayers,
+                numberTotal,
+                numberEmpty,
+                randomEmpty,
+                playCouples,
+                numberPlayerWinRandom,
+                activeNumberPlayerWinRandom,
+                numberRoundsEliminated,
+                noPlayer,
+                round:1,
+                winner: 0,
+                gameMode
+            }, '@config')
             storeData(state.playersPlay, '@playersPlay')
         },
         addNumberRoundsEliminated: (state) => {
@@ -332,14 +361,39 @@ export const scoreSlice = createSlice({
             storeData(state.playersPlay, '@playersPlay')
         },
         resetRoundsGame: (state,action)=>{
-            state.playersPlay = state.playersPlay.map((obj) => {
-                if(obj.id === action.payload){
-                    return { ...obj,points:0,pointsRound:'',place:0,eliminated:true,rounds:[]}
-                }else{
-                    return { ...obj,points:0,pointsRound:'',place:0,rounds:[]}
-                }
-            })
+            const { numberPlayers, activeNumberPlayerWinRandom, numberTotal, numberEmpty, randomEmpty, playCouples, gameMode, numberPlayerWinRandom, noPlayer, numberRoundsEliminated } = state;
+            if(state.playCouples){
+                state.playersPlay = state.playersPlay.map(player => {
+                    if (player.pair === state.playersPlay.find(player => player.id === action.payload).pair) {
+                        return { ...player,points:0,pointsRound:'',place:0,eliminated:true,rounds:[]}
+                    } else {
+                        return { ...player,points:0,pointsRound:'',place:0,rounds:[]}
+                    }
+                });
+            }else{
+                state.playersPlay = state.playersPlay.map((obj) => {
+                    if(obj.id === action.payload){
+                        return { ...obj,points:0,pointsRound:'',place:0,eliminated:true,rounds:[]}
+                    }else{
+                        return { ...obj,points:0,pointsRound:'',place:0,rounds:[]}
+                    }
+                })
+            }
             state.round=1
+            storeData({
+                numberPlayers,
+                numberTotal,
+                numberEmpty,
+                randomEmpty,
+                playCouples,
+                numberPlayerWinRandom,
+                activeNumberPlayerWinRandom,
+                numberRoundsEliminated,
+                noPlayer,
+                round:1,
+                winner: 0,
+                gameMode
+            }, '@config')
             storeData(state.playersPlay, '@playersPlay')
         }
     }
@@ -382,7 +436,8 @@ export const {
     removeNumberRoundsEliminated,
     onChangeNumberRoundsEliminated,
     addElementPlayer,
-    resetRoundsGame
+    resetRoundsGame,
+    randomOrderCouples
 } = scoreSlice.actions;
 
 export default scoreSlice.reducer;

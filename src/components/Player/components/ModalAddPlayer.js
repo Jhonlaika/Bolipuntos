@@ -20,7 +20,7 @@ const ModalAddPlayer = ({ isVisible,keyboardActive,setModalVisible,onChangeNewPl
             onBackdropPress={() => setModalVisible(false)}
             isVisible={isVisible}
         >
-            <View style={{...styles.containerRootModal,height:keyboardActive? '50%':'32%'}}>
+            <View style={{...styles.containerRootModal,height:keyboardActive? '55%':'37%'}}>
                 <Text style={styles.title}>Nombre de tu jugador</Text>
                 <TextInput value={newPlayer} onChangeText={onChangeNewPlayer} style={styles.input}/>
                 <View style={{position:'absolute',bottom:20}}>

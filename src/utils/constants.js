@@ -33,7 +33,7 @@ export const stateInitial ={
 }
 export const deletionMessages = [
     "Bueno, al menos tienes más tiempo para jugar a otros juegos ahora...",
-    "Lo siento, ya no eres un ganador. Pero al menos aún eres un ser humano, ¿verdad?",
+    "Lo siento mucho por tu pérdida... pero al menos no apostaste tu casa, ¿verdad? ¿Verdad?",
     "Parece que tu suerte se ha agotado. Mejor suerte la próxima vez...si es que la hay.",
     "No te preocupes, todavía eres el número uno en nuestro corazón...de hecho, eres el único.",
     "No te preocupes, seguro que tu mascota te seguirá queriendo a pesar de todo.",
@@ -41,8 +41,10 @@ export const deletionMessages = [
     "Bueno, si alguna vez necesitas un compañero de equipo para perder, ya sabes a quién llamar.",
     "Eres un jugador excelente...para la gente que quiere perder.",
     "Parece que has alcanzado la cima de tu capacidad...que no es muy alta, por cierto.",
-    "No te preocupes, todavía eres el campeón de tu propia vida...solo que no de este juego."
-  ];
+    "Bueno, al menos eres bueno en algo: en perder.",
+    "No te preocupes, todos tenemos nuestros días malos. Solo que el tuyo parece ser una temporada completa.",
+    "No te preocupes, alguien tiene que ser el perdedor en este juego, y afortunadamente, tienes mucho talento en eso"
+]
 export function generateRandomColor() {
     // Componentes RGB aleatorios
     const r = Math.floor(Math.random() * 150);

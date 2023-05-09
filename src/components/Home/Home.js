@@ -260,19 +260,22 @@ const Home = ({ navigation }) => {
                   value={scoreState.noPlayer}
                 />
               </View>
-              <View style={{ ...styles.containerScore, flexDirection: 'row' }}>
-                <ButtonInfo title={'Jugar en parejas'} showModalInfo={handleShowModalInfo} colorIcon={colors.primary} />
-                <Text style={{ fontSize: 20, color: colors.black }}>Jugar en parejas</Text>
-                <Switch
-                  trackColor={{ false: '#767577', true: colors.primary }}
-                  thumbColor={scoreState.playCouples ? colors.white : '#f4f3f4'}
-                  ios_backgroundColor="#3e3e3e"
-                  style={{ position: 'absolute', right: 30 }}
-                  onValueChange={handlePlayCouples}
-                  value={scoreState.playCouples}
-                />
-              </View>
             </>
+          }
+          {
+            (scoreState.gameMode === 'roulette' || scoreState.gameMode === 'eliminated') &&
+            <View style={{ ...styles.containerScore, flexDirection: 'row' }}>
+              <ButtonInfo title={'Jugar en parejas'} showModalInfo={handleShowModalInfo} colorIcon={colors.primary} />
+              <Text style={{ fontSize: 20, color: colors.black }}>Jugar en parejas</Text>
+              <Switch
+                trackColor={{ false: '#767577', true: colors.primary }}
+                thumbColor={scoreState.playCouples ? colors.white : '#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
+                style={{ position: 'absolute', right: 30 }}
+                onValueChange={handlePlayCouples}
+                value={scoreState.playCouples}
+              />
+            </View>
           }
         </ScrollView>
       </View>

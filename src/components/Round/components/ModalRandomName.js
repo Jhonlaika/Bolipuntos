@@ -48,12 +48,12 @@ const styles = StyleSheet.create({
         backgroundColor: colors.white,
         borderRadius: 10,
         borderColor: 'rgba(0, 0, 0, 0.1)',
-        height: '30%',
+        height: '35%',
         alignItems: 'center',
         marginHorizontal: 10,
     },
     textNumber: {
-        fontSize: 50,
+        fontSize: 40,
         color: colors.black
     },
     textTitle: {

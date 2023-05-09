@@ -42,7 +42,7 @@ const Round = ({ navigation }) => {
         if (playerWin && scoreState.winner === 0) {
             setFocusPlayerWin(playerWin)
             setIsCounting(true);
-            if(!winner){
+            if (!winner) {
                 dispatch(setVictoryPlayer({ id: playerWin.id, changePlace: false }))
             }
             const play = (error, sound) => sound.play()
@@ -58,21 +58,41 @@ const Round = ({ navigation }) => {
         } else if (scoreState.gameMode === 'eliminated') {
 
             let minScore = Infinity;
+            let minPlayer = null;
             let minPlayers = [];
 
-            scoreState.playersPlay.filter((player)=> !player.eliminated).forEach(player => {
-                const totalScore = player.points + (player.pointsRound ? player.pointsRound : 0);
-                if (totalScore < minScore) {
-                    minScore = totalScore;
-                    minPlayers = [player];
-                } else if (totalScore === minScore) {
-                    minPlayers.push(player);
+            if (scoreState.playCouples) {
+                let playerNoEliminated=scoreState.playersPlay.filter((player) => !player.eliminated);
+                for (let i = 0; i < playerNoEliminated.length; i++) {
+                    const player =  playerNoEliminated[i];
+                    if (!minPlayer || player.pair === minPlayer.pair) {
+                        const pairPlayers = playerNoEliminated.filter(p => p.pair === player.pair);
+                        const score = pairPlayers.reduce((acc, p) => acc + p.points + parseInt(p.pointsRound || 0), 0);
+
+                        if (score < minScore) {
+                            minPlayers = [player];
+                            minScore = score;
+                        } else if (score === minScore) {
+                            minPlayers.push(player);
+                        }
+                    }
                 }
-            });
+            } else {
+                scoreState.playersPlay.filter((player) => !player.eliminated).forEach(player => {
+                    const totalScore = player.points + (player.pointsRound ? player.pointsRound : 0);
+                    if (totalScore < minScore) {
+                        minScore = totalScore;
+                        minPlayers = [player];
+                    } else if (totalScore === minScore) {
+                        minPlayers.push(player);
+                    }
+                });
+            }
             dispatch(editPlayerPoints())
+            console.log(minPlayers,'players')
             if (scoreState.round === scoreState.numberRoundsEliminated) {
                 setRandomMessage(deletionMessages[Math.floor(Math.random() * deletionMessages.length)])
-                if (minPlayers.length === 1) {
+                if (minPlayers.length === 1  || (minPlayers.length === 2 && scoreState.playCouples)) {
                     setIsCountingLoser(true)
                     setFocusPlayerLost(minPlayers[0])
                     dispatch(resetRoundsGame(minPlayers[0].id))
@@ -91,7 +111,7 @@ const Round = ({ navigation }) => {
     }
     const handleGetDataUsers = () => {
         if (scoreState.gameMode === 'eliminated') {
-            return scoreState.playersPlay.filter(player => !player.eliminated)
+            return scoreState.playCouples ? scoreState.playersPlay.filter((item, index) => (scoreState.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0) && !item.eliminated) : scoreState.playersPlay.filter(player => !player.eliminated)
         } else {
             return scoreState.playCouples ? scoreState.playersPlay.filter((item, index) => (scoreState.round % 2 === 0 ? index % 2 !== 0 : index % 2 === 0) && !item.victory) : scoreState.playersPlay.filter(player => !player.victory)
         }
@@ -173,6 +193,9 @@ const Round = ({ navigation }) => {
     }
     const handleEndGame = () => {
         navigation.navigate('Score', { endGame: true })
+    }
+    const handleRandomGame = () => {
+        navigation.navigate('Score', { randomGame: focusPlayerLost })
     }
     const handleResetGame = () => {
         navigation.navigate('Score', { resetGame: true })
@@ -312,6 +335,7 @@ const Round = ({ navigation }) => {
                 </TouchableOpacity>
             ),
             headerRight: () => (
+
                 <TouchableOpacity style={{ paddingVertical: 10 }} onPress={handleMenuRestartGame}>
                     <Text style={{ color: colors.white }}>Reiniciar juego</Text>
                 </TouchableOpacity>
@@ -346,7 +370,7 @@ const Round = ({ navigation }) => {
         }
 
         if (countdownLoser === 0) {
-            navigation.navigate('Score')
+            handleRandomGame()
             setIsCountingLoser(false);
         }
 
@@ -378,7 +402,7 @@ const Round = ({ navigation }) => {
             {isVisibleModalRandomName && <ModalRandomName gameMode={scoreState.gameMode} playersPlay={scoreState.playersPlay} playCouples={scoreState.playCouples} handleRandomName={handleRandomName} isGenerating={isGeneratingName} randomName={randomName} isVisible={isVisibleModalRandomName} setModalVisible={handleCloseModalRandomName} />}
             <ModalEmpty isGenerating={isGenerating} randomNumber={randomNumber} isVisible={isVisibleModalEmpty} setModalVisible={handleCloseModal} />
             {
-                isCounting || isCountingLoser ?
+                isCounting || isCountingLoser  ?
                     <View>
                         {
                             isCounting
@@ -392,13 +416,18 @@ const Round = ({ navigation }) => {
                                 <Loser width={200} height={200} />
                             </View>
                         }
-                        <Text style={styles.winnerText}>{scoreState.gameMode ==='eliminated' ? `Perdiste` :'¡Felicidades'}</Text>
+                        <Text style={styles.winnerText}>{scoreState.gameMode === 'eliminated' ? `Perdiste` : '¡Felicidades'}</Text>
                         {
                             scoreState.playCouples &&
                             <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'center' }}>
                                 {
+                                    isCounting ?
                                     scoreState.playersPlay.filter((player) => player.victoryPlace === 1).map((player, index) => (
-                                        <Text index={index} style={{ ...styles.winnerText, alignSelf: 'center' }}>{`${player.name}${index === 0 ? ' y ' : ''}`}</Text>
+                                        <Text index={index} style={{ ...styles.winnerText, alignSelf: 'center' }}>{`${player.name}${index === 0 ?' y ':''}`}</Text>
+                                    ))
+                                    :
+                                    scoreState.playersPlay.filter((player) => player.pair === focusPlayerLost.pair).map((player, index) => (
+                                        <Text index={index} style={{ ...styles.winnerText, alignSelf: 'center' }}>{`${player.name}${index === 0 ? ' y ':''}`}</Text>
                                     ))
                                 }
                             </View>
@@ -407,13 +436,13 @@ const Round = ({ navigation }) => {
                             !scoreState.playCouples &&
                             <Text style={isCounting ? styles.winnerText : { ...styles.winnerText, marginVertical: 15, fontFamily: fontFamily.fontFamilyBlack }}>{isCounting ? focusPlayerWin.name : focusPlayerLost.name}</Text>
                         }
-                        <Text style={styles.winnerText}>{isCounting ? `Ganaste!` : randomMessage}</Text>
+                        <Text style={{...styles.winnerText,marginHorizontal:20}}>{isCounting ? `Ganaste!` : randomMessage}</Text>
                     </View>
                     :
 
                     <>
                         <FlatList
-                            contentContainerStyle={{ paddingBottom: 70 }}
+                            contentContainerStyle={{ paddingBottom: 85 }}
                             style={{ width: '100%', paddingHorizontal: 30 }}
                             data={data}
                             renderItem={_renderItem}
@@ -445,6 +474,5 @@ const styles = StyleSheet.create({
         fontFamily: fontFamily.fontFamilyBold,
         color: colors.black,
         textAlign: 'center',
-        marginHorizontal: 20
     }
 })

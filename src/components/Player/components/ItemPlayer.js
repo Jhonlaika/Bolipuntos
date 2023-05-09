@@ -123,7 +123,7 @@ const ItemPlayer = ({
       </View>
       {
         (score && playCouples) &&
-        <View style={{ ...styles.pairsContainer,borderWidth: 0.2, borderColor: item.backgroundColor }}>
+        <View style={{ ...styles.pairsContainer,marginTop:(gameMode ==='eliminated' && index % 2 !== 0) ? 10 :0,borderWidth: 0.2, borderColor: item.backgroundColor }}>
           {
             index % 2 === 0
               ?
@@ -134,7 +134,10 @@ const ItemPlayer = ({
               </>
               :
               <>
-                <Text style={{ ...styles.subTitlePoints, color: item.backgroundColor,paddingTop:3.5 }}>{`Restante : ${remaining <0 ?0:remaining}`}</Text>
+                {
+                  gameMode !=='eliminated' &&
+                  <Text style={{ ...styles.subTitlePoints, color: item.backgroundColor,paddingTop:3.5 }}>{`Restante : ${remaining <0 ?0:remaining}`}</Text>
+                }
                 <Text style={{ ...styles.subTitlePoints,paddingBottom:3.5 }}>Posicion: <Text style={{ fontWeight: 'bold' }}>{`${item.victoryPlace === 0 ? (item.place === (playCouples ? lengthPlayers/2:lengthPlayers) ? '🐷' : item.place) : item.victoryPlace}`}</Text></Text>
               </>
           }
